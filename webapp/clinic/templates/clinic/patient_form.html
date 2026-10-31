@@ -1,28 +1,32 @@
 {% extends "clinic/base.html" %}{% load clinic_tags %}
 {% block title %}Add patient{% endblock %}
 {% block content %}
-<div class="page-head"><a href="{% url 'patients' %}" style="color:inherit">{% icon "back" 20 %}</a><h2>Add patient</h2>
-  <span class="spacer"></span><span class="muted small">Values are pre-filled with dataset medians — replace them with the patient's data.</span></div>
-<form method="post">{% csrf_token %}
-  {% if form.non_field_errors %}<div class="alert error">{{ form.non_field_errors|join:" " }}</div>{% endif %}
-  <div class="card" style="margin-bottom:16px;max-width:420px">
-    <div class="field"><label for="{{ form.patient_code.id_for_label }}">{{ form.patient_code.label }}</label>{{ form.patient_code }}
-      <span class="help">{{ form.patient_code.help_text }}</span>{% for e in form.patient_code.errors %}<span class="err">{{ e }}</span>{% endfor %}</div>
-  </div>
-  <div class="grid form-grid">
-    {% for group, fields in form.grouped %}
-    <div class="card"><h3>{% icon group|group_icon %} {{ group }}</h3>
-      <div class="fields-2">
-      {% for f in fields %}
-        <div class="field"><label for="{{ f.id_for_label }}">{{ f.label }}</label>{{ f }}
-          {% if f.help_text %}<span class="help">{{ f.help_text }}</span>{% endif %}
-          {% for e in f.errors %}<span class="err">{{ e }}</span>{% endfor %}</div>
-      {% endfor %}
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  <div style="margin-top:16px;display:flex;gap:10px"><button class="btn" type="submit">{% icon "plus" 16 %} Save patient</button>
-    <a class="btn ghost" href="{% url 'patients' %}">Cancel</a></div>
+<a class="back-link" href="{% url 'patients' %}">{% icon "back" 15 %} Patient directory</a>
+<div class="page-heading">
+<div>
+<p class="eyebrow">NEW PATIENT RECORD</p>
+<h1>Add patient</h1>
+<p class="lede">Work through six sections, then save the record for assessment.</p>
+</div>
+</div>
+<form method="post" class="patient-entry" id="patient-entry">{% csrf_token %}
+{% if form.errors %}<div class="notice error" role="alert" tabindex="-1" id="error-summary">
+<h2>Check the highlighted fields</h2>
+<ul>{% for f in form %}{% if f.errors %}<li><a href="#{{ f.id_for_label }}">{{ f.label }}: {{ f.errors|join:" " }}</a></li>{% endif %}{% endfor %}{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>{% endif %}
+<div class="form-layout">
+<nav class="form-navigation" aria-label="Entry sections"><span class="eyebrow">RECORD SECTIONS</span>{% for s in form_sections %}<a href="#entry-{{ forloop.counter }}"><span>{{ forloop.counter|stringformat:"02d" }}</span>{{ s.label }}{% if s.has_errors %}<span class="error-dot" aria-label="Contains errors"></span>{% endif %}</a>{% endfor %}</nav>
+<div class="form-content">
+<div class="entry-note">Fields contain example values. Replace these with the intended values in every section before saving. All clinical fields are required.</div>
+<div class="identity-entry field"><label for="{{ form.patient_code.id_for_label }}">Patient ID <span class="muted">(optional)</span></label>{{ form.patient_code }}<span class="help">Leave blank to assign an ID automatically.</span>{% for e in form.patient_code.errors %}<span class="field-error">{{ e }}</span>{% endfor %}</div>
+{% for s in form_sections %}<details class="entry-section disclosure" id="entry-{{ forloop.counter }}" {% if forloop.first or s.has_errors %}open{% endif %}><summary><span class="section-number">{{ forloop.counter|stringformat:"02d" }}</span>{{ s.label }}<span class="section-meta">{{ s.fields|length }} fields</span></summary>
+<fieldset><legend class="visually-hidden">{{ s.label }}</legend>
+<div class="field-grid">{% for f in s.fields %}<div class="field {% if f.errors %}invalid{% endif %}"><label for="{{ f.id_for_label }}">{{ f.label }}</label>{{ f }}{% for e in f.errors %}<span class="field-error">{{ e }}</span>{% endfor %}</div>{% endfor %}</div>
+</fieldset>
+</details>{% endfor %}
+<div class="form-actions"><a class="button secondary" href="{% url 'patients' %}">Cancel</a><button class="button" type="submit">Save patient {% icon "arrow" 16 %}</button>
+</div>
+</div>
+</div>
 </form>
 {% endblock %}

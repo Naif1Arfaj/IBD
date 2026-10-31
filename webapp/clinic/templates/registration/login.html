@@ -1,27 +1,24 @@
 {% load static clinic_tags %}<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sign in · IBD Risk Assessment</title>
-  <link rel="stylesheet" href="{% static 'clinic/app.css' %}">
-</head>
-<body>
-<div class="login-wrap">
-  <div class="card login">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;color:var(--teal-700)">
-      {% icon "leaf" 30 %}<div><b>{{ HOSPITAL_NAME }}</b><div class="muted small">{{ HOSPITAL_SUBTITLE }}</div></div>
-    </div>
-    <h2>IBD Risk Assessment</h2>
-    <p class="muted" style="margin-top:0">Sign in to the clinical decision-support demo.</p>
-    {% if form.errors %}<div class="alert error">Incorrect username or password.</div>{% endif %}
-    <form method="post">{% csrf_token %}
-      <div class="field"><label for="id_username">Username</label>{{ form.username }}</div>
-      <div class="field"><label for="id_password">Password</label>{{ form.password }}</div>
-      <input type="hidden" name="next" value="{{ next }}">
-      <button class="btn lg" type="submit">Sign in</button>
-    </form>
-    <p class="small muted" style="margin-top:14px"><span class="demo-badge sm">DEMO — SYNTHETIC DATA</span> No real patient data.</p>
-  </div>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sign in | IBD Care</title><link rel="stylesheet" href="{% static 'clinic/app.css' %}"></head>
+<body class="login-page">
+<main class="login-shell">
+<section class="login-introduction"><a class="brand" href="{% url 'login' %}">{% include "clinic/partials/brand_mark.html" %}<span>IBD Care<small>Inflammatory bowel disease risk assessment</small></span></a>
+<div>
+<p class="eyebrow">INFORMATION. UNDERSTANDING. CARE.</p>
+<h1>A clearer view<br>of IBD risk.</h1>
+<p>Patient information, interpretable assessments and supporting literature in one considered workspace.</p>
+</div><svg class="organic-motif" aria-hidden="true" viewBox="0 0 300 190" fill="none"><path d="M30 38h190c45 0 45 65 0 65H95c-45 0-45 65 0 65h170M30 62h190c12 0 12 17 0 17H95c-78 0-78 113 0 113" stroke="currentColor" stroke-width="1.5"/><circle cx="43" cy="139" r="4"/><circle cx="252" cy="72" r="3"/><circle cx="178" cy="150" r="3"/></svg>
+</section>
+<section class="login-panel">
+<div class="login-form">
+<p class="eyebrow">CARE TEAM ACCESS</p>
+<h2>Sign in to your workspace</h2>
+<p class="muted">Continue to patient records and assessments.</p>{% if form.errors %}<div class="notice error" role="alert">Incorrect username or password. Please try again.</div>{% endif %}<form method="post">{% csrf_token %}<div class="field"><label for="id_username">Username</label>{{ form.username }}</div>
+<div class="field"><label for="id_password">Password</label>{{ form.password }}</div><input type="hidden" name="next" value="{{ next }}"><button class="button full-width" type="submit">Sign in {% icon "arrow" 16 %}</button>
+</form>
+<details class="login-disclosure"><summary><span class="status-dot"></span> Demo environment</summary>
+<p>Synthetic data only. Not validated for clinical use. Estimates and explanations must not guide diagnosis or treatment.</p>
+</details>
 </div>
-</body>
-</html>
+</section>
+</main></body></html>

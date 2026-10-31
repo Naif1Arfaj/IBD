@@ -1,0 +1,29 @@
+{% load clinic_tags %}
+{% if risk_history %}<section class="patient-risk-history" aria-labelledby="risk-history-title">
+<div class="section-heading">
+<div>
+<p class="eyebrow">SAVED ESTIMATES</p>
+<h2 id="risk-history-title">Estimated IBD risk over time</h2>
+</div><span class="caption">{{ risk_history.count }}{% if risk_history.total > risk_history.count %} most recent{% endif %} assessments</span>
+</div>
+<div class="history-plot" role="group" aria-label="Saved estimated IBD risks on a fixed zero to one hundred percent scale">
+<div class="history-y-axis" aria-hidden="true"><span>100%</span><span>50%</span><span>0%</span>
+</div>
+<div class="history-graph"><svg viewBox="0 0 600 160" preserveAspectRatio="none" aria-hidden="true"><path d="M18 8H582 M18 80H582 M18 152H582" stroke="#d6e1e6" fill="none" vector-effect="non-scaling-stroke"/><path d="{{ risk_history.path }}" stroke="#286a79" fill="none" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>{% for point in risk_history.points %}<a class="history-point {% if forloop.last %}latest{% endif %}" href="{% url 'result' point.assessment.pk %}" style="left:{{ point.left|stringformat:'.3f' }}%;top:{{ point.top|stringformat:'.3f' }}%" title="{{ point.assessment.created|date:'j M Y, H:i' }}: {{ point.assessment.probability|pct:1 }} ({{ point.assessment.tier }})"><span class="visually-hidden">Open {{ point.assessment.created|date:"j M Y, H:i" }} assessment: {{ point.assessment.probability|pct:1 }}, {{ point.assessment.tier }} risk</span></a>{% endfor %}</div>
+</div>
+<div class="history-x-axis"><time>{{ risk_history.start|date:"j M Y, H:i" }}</time><time>{{ risk_history.end|date:"j M Y, H:i" }}</time>
+</div>
+<p class="caption history-scope">Changes in the model estimate only, not disease progression, improvement or deterioration.{% if risk_history.same_timestamp %} Assessments share a timestamp and are spaced in saved order.{% endif %}{% if risk_history.mixed_methods %} Assessment methods differ across these records; estimates may not be directly comparable.{% endif %}</p>
+<details class="disclosure compact"><summary>View dated assessment values</summary>
+<div class="table-scroll">
+<table class="data-table">
+<thead>
+<tr><th>Assessment date</th><th>Estimated risk</th><th>Risk level</th><th><span class="visually-hidden">Actions</span></th>
+</tr>
+</thead>
+<tbody>{% for point in risk_history.points %}<tr><th scope="row">{{ point.assessment.created|date:"j M Y, H:i" }}</th><td>{{ point.assessment.probability|pct:1 }}</td><td>{{ point.assessment.tier }}</td><td><a href="{% url 'result' point.assessment.pk %}">Open &rarr;</a></td>
+</tr>{% endfor %}</tbody>
+</table>
+</div>
+</details>
+</section>{% endif %}

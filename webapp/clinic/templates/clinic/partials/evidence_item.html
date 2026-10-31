@@ -1,0 +1,17 @@
+{% load clinic_tags %}{% with prefix="factor-"|add:e.feature %}
+<details id="evidence-{{ e.feature }}" class="evidence-item disclosure" tabindex="-1" {% if forloop.first %}open{% endif %}><summary><span class="evidence-number">{{ forloop.counter|stringformat:"02d" }}</span>{{ e.label }}<span class="section-meta">{{ e.references|length }} source{{ e.references|length|pluralize }}</span></summary>
+<div class="evidence-connection">
+<div><span>Patient finding</span><b>{{ e.label }}</b><strong>{{ e.value }}</strong>
+</div><span class="connection-arrow" aria-hidden="true">&rarr;</span>
+<div><span>Influence on estimate</span><b>{% if e.direction == 'raises' %}Increasing{% else %}Reducing{% endif %} estimated risk</b><a class="no-print" href="#finding-{{ e.feature }}">Back to finding &uarr;</a>
+</div><span class="connection-arrow" aria-hidden="true">&rarr;</span>
+<div class="evidence-source-step"><span>Supporting literature</span>{% if e.references %}<b>{{ e.references|length }} cited source{{ e.references|length|pluralize }}</b>{% else %}<b>Research summary</b>{% endif %}<small>Review applicability to the patient.</small>
+</div>
+</div>
+<div class="evidence-concise">
+<p class="evidence-reading-label">{% if e.text %}RESEARCH SUMMARY{% else %}SOURCE EXCERPT{% endif %}</p>{% if e.text %}<div class="prose">{{ e.text|readable_text|truncatewords:50|cite:prefix }}</div>{% elif e.references %}<p class="evidence-excerpt">&ldquo;{{ e.references.0.quotes.0|readable_text|truncatewords:40 }}&rdquo;</p>{% endif %}{% if e.references %}{% with ref=e.references.0 %}<a class="evidence-primary-source" href="{% paper_url ref %}" target="_blank" rel="noopener">{% icon "book" 14 %} {{ ref.label|readable_text }}</a>{% endwith %}{% endif %}</div>
+<details class="evidence-full disclosure compact"><summary>Read full {% if e.text %}summary{% else %}source passages{% endif %} &amp; references</summary>{% if e.text %}<div class="prose">{{ e.text|readable_text|cite:prefix }}</div>{% else %}{% for ref in e.references|slice:":2" %}<blockquote>
+<p>{{ ref.quotes.0|readable_text }}</p><a href="{% paper_url ref %}" target="_blank" rel="noopener">{{ ref.label|readable_text }}</a></blockquote>{% endfor %}{% endif %}<ol class="references">{% for ref in e.references %}<li id="{{ prefix }}-{{ ref.n }}">[{{ ref.n }}] <a href="{% paper_url ref %}" target="_blank" rel="noopener">{{ ref.label|readable_text }}</a></li>{% endfor %}</ol>
+</details>
+</details>
+{% endwith %}

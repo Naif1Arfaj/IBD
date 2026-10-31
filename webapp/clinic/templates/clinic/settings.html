@@ -1,32 +1,141 @@
 {% extends "clinic/base.html" %}{% load clinic_tags %}
-{% block title %}Settings{% endblock %}
+{% block title %}About{% endblock %}{% block environment %}{% endblock %}
 {% block content %}
-<div class="page-head"><h2>Settings</h2></div>
-<div class="grid" style="grid-template-columns:1fr 1fr">
-  <div class="card">
-    <h3>{% icon "brain" %} Research assistant (RAG)</h3>
-    <table class="tbl">
-      <tr><td>Claude API</td><td>{% if llm_on %}<span class="chip low">Key detected</span>{% else %}<span class="chip grey">No key — offline mode</span>{% endif %}</td></tr>
-      <tr><td>Model</td><td><code>{{ model }}</code> · adaptive thinking · refusal fallback enabled</td></tr>
-      {% if stats %}
-      <tr><td>Indexed papers</td><td>{{ stats.documents }}</td></tr>
-      <tr><td>Searchable passages</td><td>{{ stats.chunks }}</td></tr>
-      <tr><td>Unreadable PDFs</td><td>{{ stats.failed|length }}</td></tr>
-      {% else %}<tr><td>Index</td><td><span class="chip high">Not built</span> run <code>manage.py build_index</code></td></tr>{% endif %}
-      <tr><td>Retrieval</td><td>Hybrid: BGE-small embeddings + BM25, reciprocal-rank fusion</td></tr>
-    </table>
-    {% if not llm_on %}<div class="alert info" style="margin-top:12px">To enable written, cited evidence summaries, add <code>ANTHROPIC_API_KEY=…</code> to <code>ibd_model/.env</code> and restart the server.</div>{% endif %}
-  </div>
-  <div class="card">
-    <h3>{% icon "shield" %} Model card</h3>
-    <table class="tbl">
-      <tr><td>Model</td><td>{{ card.name }}</td></tr>
-      <tr><td>Inputs</td><td>{{ card.n_features }} variables in {{ groups|length }} groups</td></tr>
-      <tr><td>Decision threshold</td><td>{{ card.threshold|pct:1 }}</td></tr>
-      <tr><td>Risk tiers</td><td>Low &lt; {{ card.tiers.Low|pct }} ≤ Moderate &lt; {{ card.tiers.Moderate|pct }} ≤ High</td></tr>
-      <tr><td>Test precision / recall / accuracy</td><td>{{ card.precision|pct }} / {{ card.recall|pct }} / {{ card.accuracy|pct }}</td></tr>
-    </table>
-    <div class="disclaimer">{% icon "alert" 16 %}<span>{{ card.disclaimer }}</span></div>
-  </div>
+<div class="page-heading">
+<div>
+<p class="eyebrow">PURPOSE, SAFETY &amp; TRANSPARENCY</p>
+<h1>About IBD Care</h1>
+<p class="lede">A clinical workspace built around nursing review of inflammatory bowel disease risk.</p>
 </div>
+</div>
+<section class="about-intro" id="purpose">
+<div class="about-intro-heading">{% include "clinic/partials/brand_mark.html" %}<div>
+<p class="eyebrow">WHAT IBD CARE DOES</p>
+<h2>From recorded information to an informed review</h2>
+</div>
+</div>
+<p>Patient information, an estimated IBD risk, contributing factors and supporting literature in one reviewable assessment record.</p>
+<dl class="about-status-strip">
+<div><dt>Environment</dt><dd>Synthetic demonstration</dd>
+</div>
+<div><dt>Validation status</dt><dd>Not clinically validated</dd>
+</div>
+<div><dt>Decision-maker</dt><dd>The clinical team</dd>
+</div>
+</dl>
+</section>
+<nav class="about-section-nav" aria-label="About sections"><a href="#intended-use">Intended use</a><a href="#nursing-workflow">Nursing workflow</a><a href="#clinical-safety">Safety &amp; oversight</a><a href="#data-validation">Data &amp; validation</a><a href="#transparency">Technical transparency</a>
+</nav>
+<div class="about-purpose-grid">
+<section class="about-section" id="intended-use">
+<div class="about-section-heading"><span>{% icon "clipboard" 20 %}</span>
+<div>
+<p class="eyebrow">01 / PURPOSE</p>
+<h2>Intended clinical use</h2>
+</div>
+</div>
+<p>Designed to support nurses in organising patient information and reviewing estimated IBD risk with the clinical team.</p>
+<ul class="about-checklist"><li>Review recorded patient information.</li><li>Understand the estimate and the factors influencing it.</li><li>Consult sources and prepare a printable assessment.</li>
+</ul>
+<p class="about-scope-line">Current scope: demonstration only. It is not a diagnostic or treatment tool.</p>
+</section>
+<section class="about-section" id="nursing-workflow">
+<div class="about-section-heading"><span>{% icon "users" 20 %}</span>
+<div>
+<p class="eyebrow">02 / NURSING WORKFLOW</p>
+<h2>How the assessment supports nurses</h2>
+</div>
+</div>
+<ol class="about-workflow"><li><span>01</span>
+<div><b>Review the patient</b><small>Clinical snapshot, recorded flags and saved assessments.</small>
+</div></li><li><span>02</span>
+<div><b>Understand the estimate</b><small>Risk category and a visual explanation of influencing factors.</small>
+</div></li><li><span>03</span>
+<div><b>Check the supporting literature</b><small>Finding-linked summaries, sources and optional detail.</small>
+</div></li><li><span>04</span>
+<div><b>Prepare the assessment record</b><small>Print a concise report or include expanded information.</small>
+</div></li>
+</ol>
+</section>
+</div>
+<section class="about-safety-group" id="clinical-safety">
+<div class="about-section-heading"><span>{% icon "shield" 20 %}</span>
+<div>
+<p class="eyebrow">03 / PROFESSIONAL REVIEW</p>
+<h2>Clinical safety &amp; human oversight</h2>
+</div>
+</div>
+<div class="about-safety-columns">
+<div>
+<h3>What a result means</h3>
+<ul class="about-checklist"><li>A risk estimate is not a diagnosis.</li><li>A low estimate does not exclude IBD or override symptoms and red flags.</li><li>Contributing factors explain the calculation; they do not establish causation.</li>
+</ul>
+</div>
+<div>
+<h3>The human remains in control</h3>
+<ul class="about-checklist"><li>The nurse checks the recorded information and reviews the findings.</li><li>The clinical team judges the relevance of literature and follow-up guidance.</li><li>No diagnosis, referral or treatment decision is made automatically.</li>
+</ul>
+</div>
+</div>
+<div class="about-safety-note"><b>Demonstration results must not guide patient care.</b><span>Estimates and explanations must not be used for diagnosis or treatment.</span>
+</div>
+</section>
+<section class="about-section" id="data-validation">
+<div class="about-section-heading"><span>{% icon "file" 20 %}</span>
+<div>
+<p class="eyebrow">04 / DATA &amp; VALIDATION</p>
+<h2>Understand the demonstration's limits</h2>
+</div>
+</div>
+<div class="about-data-columns">
+<div>
+<h3>Synthetic/demo data</h3>
+<dl class="about-facts">
+<div><dt>Patient records</dt><dd>Synthetic data, not real patient records.</dd>
+</div>
+<div><dt>Laboratory values &amp; entry limits</dt><dd>Demonstration values, not validated clinical reference ranges.</dd>
+</div>
+<div><dt>Risk estimates</dt><dd>Do not represent validated probabilities for real patients.</dd>
+</div>
+</dl>
+</div>
+<div>
+<h3>Validation status</h3>
+<dl class="about-facts">
+<div><dt>Clinical validation</dt><dd>Not validated with real patient data.</dd>
+</div>
+<div><dt>Before clinical deployment</dt><dd>Appropriate clinical validation, research governance and approval are required.</dd>
+</div>
+<div><dt>Supporting research</dt><dd>{% if stats %}{{ stats.documents }} papers in the library.{% else %}Library currently unavailable.{% endif %} Individual applicability requires review.</dd>
+</div>
+</dl>
+</div>
+</div>
+</section>
+<section class="about-section about-transparency" id="transparency">
+<div class="about-section-heading"><span>{% icon "book" 20 %}</span>
+<div>
+<p class="eyebrow">05 / TRANSPARENCY</p>
+<h2>Technical transparency</h2>
+</div>
+</div>
+<p>Clinical screens focus on the patient and the meaning of the estimate. Assessment method and synthetic validation details remain available here.</p>
+<details class="disclosure"><summary>Assessment method &amp; validation details</summary>
+<dl class="clinical-facts">
+<div><dt>Assessment model</dt><dd>{{ card.name }}</dd>
+</div>
+<div><dt>Inputs</dt><dd>{{ card.n_features }} variables</dd>
+</div>
+<div><dt>Classification threshold</dt><dd>{{ card.threshold|pct:1 }}</dd>
+</div>
+<div><dt>Risk boundaries</dt><dd>Low &lt; {{ card.tiers.Low|pct }}; moderate &lt; {{ card.tiers.Moderate|pct }}; high at or above {{ card.tiers.Moderate|pct }}</dd>
+</div>
+<div><dt>Synthetic test precision / recall / accuracy</dt><dd>{{ card.precision|pct }} / {{ card.recall|pct }} / {{ card.accuracy|pct }}</dd>
+</div>
+</dl>
+<p class="caption">These metrics measure recovery of a synthetic generation formula, not clinical accuracy. Explanations use SHAP contributions to the estimate.</p>
+</details>
+<div class="about-resource-links"><a href="{% url 'evidence' %}">Evidence library &rarr;</a><a href="{% url 'patients' %}">Patient directory &rarr;</a><a href="{% url 'reports' %}">Saved evidence archive &rarr;</a>
+</div>
+</section>
 {% endblock %}

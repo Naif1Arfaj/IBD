@@ -1,0 +1,10 @@
+{% load clinic_tags %}
+<section class="clinical-snapshot" aria-labelledby="snapshot-title" id="clinical-snapshot">
+  <div class="snapshot-heading"><div><p class="eyebrow">PATIENT INFORMATION AT A GLANCE</p><h2 id="snapshot-title">{% icon "clipboard" 18 %} Clinical snapshot</h2></div><span>{{ snapshot_caption }}</span></div>
+  <div class="snapshot-measurements {% if show_risk %}with-risk{% endif %}">
+    {% if show_risk %}<div class="snapshot-risk"><span class="snapshot-label">Latest saved estimate</span>{% if snapshot.assessment %}<strong>{{ snapshot.assessment.probability|pct:1 }} <span class="risk-label {{ snapshot.assessment.tier|tier_class }}">{{ snapshot.assessment.tier }}</span></strong><time class="snapshot-date">{{ snapshot.assessment.created|date:"j M Y, H:i" }}</time><a href="{% url 'result' snapshot.assessment.pk %}">Review assessment &rarr;</a>{% else %}<strong class="not-assessed">Not assessed</strong><a href="?section=clinical">Review information first &rarr;</a>{% endif %}</div>{% endif %}
+    {% for m in snapshot.measurements %}<div><span class="snapshot-label">{{ m.label }}</span><strong>{{ m.value }}</strong>{% if m.finding %}<a class="no-print" href="#finding-{{ m.feature }}">View influence &rarr;</a>{% else %}<span class="snapshot-unit-note">Recorded value</span>{% endif %}</div>{% endfor %}
+  </div>
+  <dl class="snapshot-context"><div><dt>Family history of IBD</dt><dd>{{ snapshot.family_history }}</dd></div><div><dt>Antibiotic exposure</dt><dd>{{ snapshot.antibiotics }}</dd></div><div class="snapshot-flags"><dt>Recorded red flags</dt><dd>{% if snapshot.flags %}<span class="snapshot-flag-names">{{ snapshot.flags|join:"; " }}</span>{% else %}None marked present{% endif %}</dd></div></dl>
+{% if snapshot.outdated %}<p class="snapshot-update-note">Recorded information has changed since the latest assessment. Run a new assessment to use the current values.</p>{% endif %}
+</section>

@@ -1,19 +1,23 @@
-{% extends "clinic/base.html" %}{% load clinic_tags humanize %}
-{% block title %}Reports{% endblock %}
-{% block content %}
-<div class="page-head"><h2>Reports</h2></div>
-<div class="card">
-  {% if page.object_list %}
-  <table class="tbl"><tr><th>Patient</th><th>Risk</th><th>Evidence</th><th>Created</th><th></th></tr>
-    {% for r in page.object_list %}<tr>
-      <td>{{ r.assessment.patient.patient_code }}</td>
-      <td><span class="chip {{ r.assessment.tier|tier_class }}">{{ r.assessment.tier }} · {{ r.assessment.probability|pct }}</span></td>
-      <td>{% if r.llm_used %}<span class="chip teal">Claude + library</span>{% else %}<span class="chip grey">Library passages</span>{% endif %}</td>
-      <td class="muted">{{ r.created|naturaltime }}</td><td><a href="{% url 'report' r.pk %}">Open {% icon "chevron" 14 %}</a></td></tr>{% endfor %}
-  </table>
-  <div class="pager">{% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">‹ Prev</a>{% else %}<span></span>{% endif %}
-    <span class="muted">Page {{ page.number }} / {{ page.paginator.num_pages }}</span>
-    {% if page.has_next %}<a href="?page={{ page.next_page_number }}">Next ›</a>{% else %}<span></span>{% endif %}</div>
-  {% else %}<p class="muted">No reports yet. Run an assessment and press <b>Generate report</b>.</p>{% endif %}
+{% extends "clinic/base.html" %}{% load clinic_tags %}
+{% block title %}Saved evidence archive{% endblock %}
+{% block content %}<a class="back-link" href="{% url 'assessments' %}">{% icon "back" 15 %} Assessments</a>
+<div class="page-heading">
+<div>
+<p class="eyebrow">HISTORICAL RECORDS</p>
+<h1>Saved evidence archive</h1>
+<p class="lede">Previously generated evidence summaries. Current assessments already include a printable report.</p>
 </div>
-{% endblock %}
+</div>
+<section class="surface">{% if page.object_list %}<div class="table-scroll">
+<table class="data-table">
+<thead>
+<tr><th>Patient</th><th>Assessment risk</th><th>Summary saved</th><th><span class="visually-hidden">Actions</span></th>
+</tr>
+</thead>
+<tbody>{% for r in page.object_list %}<tr><th scope="row"><a href="{% url 'patient' r.assessment.patient_id %}">{{ r.assessment.patient.patient_code }}</a></th><td><span class="risk-label {{ r.assessment.tier|tier_class }}">{{ r.assessment.tier }}</span></td><td>{{ r.created|date:"j M Y, H:i" }}</td><td class="row-action"><a href="{% url 'report' r.pk %}">Open saved assessment &rarr;</a></td>
+</tr>{% endfor %}</tbody>
+</table>
+</div>{% else %}<div class="empty">
+<h2>No archived summaries</h2>
+<p>Open an assessment to review findings and supporting literature.</p><a href="{% url 'assessments' %}">Assessment history &rarr;</a>
+</div>{% endif %}</section>{% include "clinic/partials/pagination.html" %}{% endblock %}

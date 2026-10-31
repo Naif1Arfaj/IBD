@@ -1,0 +1,3 @@
+{% load clinic_tags %}
+<ul class="factor-list">{% for f in factors|slice:":3" %}{% include "clinic/partials/finding_row.html" with rank=forloop.counter %}{% empty %}<li class="muted">No factors shown in this direction.</li>{% endfor %}</ul>
+{% if factors|length > 3 %}<details class="more-factors"><summary>Show {{ factors|length|add:"-3" }} more factor{{ factors|length|add:"-3"|pluralize }}</summary><ul class="factor-list">{% for f in factors|slice:"3:" %}{% include "clinic/partials/finding_row.html" with rank=forloop.counter|add:"3" %}{% endfor %}</ul></details>{% endif %}

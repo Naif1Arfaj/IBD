@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-DATA_PATH = Path(__file__).resolve().parent.parent / "Saudi_IBD_Synthetic.xlsx"
+DATA_PATH = Path(__file__).resolve().parent / "Saudi_IBD_Synthetic.xlsx"
 SHEET = "Synthetic_Data"
 TARGET = "synthetic_IBD_outcome"
 

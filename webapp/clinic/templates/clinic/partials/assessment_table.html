@@ -1,0 +1,12 @@
+{% load clinic_tags %}<div class="table-scroll">
+<table class="data-table">
+<thead>
+<tr><th scope="col">Patient</th><th scope="col">Assessment date</th><th scope="col">Risk level</th><th scope="col">Estimated risk</th><th scope="col"><span class="visually-hidden">Actions</span></th>
+</tr>
+</thead>
+<tbody>
+{% for a in rows %}<tr><th scope="row"><a class="patient-link" href="{% url 'patient' a.patient_id %}">{{ a.patient.patient_code }}</a></th><td>{{ a.created|date:"j M Y, H:i" }}</td><td><span class="risk-label {{ a.tier|tier_class }}">{{ a.tier }}</span></td><td>{{ a.probability|pct:1 }}</td><td class="row-action"><a href="{% url 'result' a.pk %}" aria-label="Open assessment for {{ a.patient.patient_code }} from {{ a.created|date:'j M Y, H:i' }}">Open assessment &rarr;</a></td>
+</tr>{% endfor %}
+</tbody>
+</table>
+</div>

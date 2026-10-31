@@ -1,57 +1,45 @@
 {% load static clinic_tags %}<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}IBD Risk Assessment{% endblock %} · {{ HOSPITAL_NAME }}</title>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Clinical workspace{% endblock %} | IBD Care</title>
   <link rel="stylesheet" href="{% static 'clinic/app.css' %}">
+  <script src="{% static 'clinic/app.js' %}" defer></script>
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">
-    <div class="brand-logo">{% icon "leaf" 22 %}</div>
-    <div class="brand-name">{{ HOSPITAL_NAME }}<small>{{ HOSPITAL_SUBTITLE }}</small></div>
-  </div>
-  <div class="app-title">
-    <h1>IBD Risk Assessment</h1>
-    <p>AI-Powered Decision Support for Early Identification</p>
-  </div>
-  <span class="demo-badge">DEMO — SYNTHETIC DATA</span>
-  <div class="user-chip">
-    <div class="avatar">{% icon "user" 20 %}</div>
-    <div>{{ user.get_full_name|default:user.username|title }}<small>Clinical Care Team</small></div>
-    <form method="post" action="{% url 'logout' %}">{% csrf_token %}
-      <button class="btn ghost" style="padding:6px 8px;background:transparent;border-color:rgba(255,255,255,.3);color:#fff" title="Sign out">{% icon "logout" 16 %}</button>
-    </form>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="app-header no-print">
+  <a class="brand" href="{% url 'dashboard' %}">{% include "clinic/partials/brand_mark.html" %}<span>IBD Care<small>Inflammatory bowel disease risk assessment</small></span></a>
+  <div class="header-tools">
+    {% block environment %}<details class="environment"><summary><span class="status-dot"></span><span class="environment-label">Demo environment</span><span class="environment-short">Demo</span></summary>
+<div class="environment-content"><b>Demonstration only</b>
+<p>Synthetic data. Not validated for clinical use. Do not use estimates or explanations for diagnosis or treatment.</p><a href="{% url 'settings' %}">Intended use &amp; safety</a>
+</div>
+</details>{% endblock %}
+    <details class="account"><summary>{% icon "user" 17 %}<span class="account-name">{{ user.get_full_name|default:user.username }}</span><span class="account-label">Account</span>{% icon "chevron" 13 %}</summary>
+<div class="account-content"><b>{{ user.get_full_name|default:user.username }}</b><small>Care team workspace</small>
+<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit">{% icon "logout" 16 %} Sign out</button>
+</form>
+</div>
+</details>
   </div>
 </header>
-<div class="shell">
-  <nav class="sidebar">
-    <div class="nav">
-      <a href="{% url 'dashboard' %}" class="{% if nav == 'dashboard' %}active{% endif %}">{% icon "home" %} Dashboard</a>
-      <a href="{% url 'patients' %}" class="{% if nav == 'patients' %}active{% endif %}">{% icon "users" %} Patients</a>
-      <a href="{% url 'assessments' %}" class="{% if nav == 'assessments' %}active{% endif %}">{% icon "trend" %} Risk Assessments</a>
-      <a href="{% url 'evidence' %}" class="{% if nav == 'evidence' %}active{% endif %}">{% icon "book" %} Evidence Library</a>
-      <a href="{% url 'reports' %}" class="{% if nav == 'reports' %}active{% endif %}">{% icon "file" %} Reports</a>
-      <a href="{% url 'settings' %}" class="{% if nav == 'settings' %}active{% endif %}">{% icon "settings" %} Settings</a>
-    </div>
-    <div class="sidebar-foot">Better Care<br>Through Innovation
-      <svg width="150" height="16" viewBox="0 0 150 16"><path d="M2 14 C 50 14, 100 12, 148 2" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
-    </div>
-  </nav>
-  <main class="main">
-    {% for m in messages %}<div class="alert {{ m.tags }}">{{ m }}</div>{% endfor %}
+<div class="app-shell">
+  <aside class="rail no-print"><div class="rail-content"><div class="rail-heading"><span>WORKSPACE</span><button class="rail-toggle" type="button" aria-controls="clinical-navigation" aria-expanded="true" aria-label="Collapse navigation" title="Collapse navigation">{% icon "chevron" 18 %}</button></div>
+    <nav class="primary-nav" id="clinical-navigation" aria-label="Clinical workspace">
+
+      <a href="{% url 'dashboard' %}" aria-label="Overview" title="Overview" {% if nav == 'dashboard' %}class="active" aria-current="page"{% endif %}>{% icon "home" 18 %} <span class="nav-label">Overview</span></a>
+      <a href="{% url 'patients' %}" aria-label="Patients" title="Patients" {% if nav == 'patients' %}class="active" aria-current="page"{% endif %}>{% icon "users" 18 %} <span class="nav-label">Patients</span></a>
+      <a href="{% url 'assessments' %}" aria-label="Assessments" title="Assessments" {% if nav == 'assessments' %}class="active" aria-current="page"{% endif %}>{% icon "clipboard" 18 %} <span class="nav-label">Assessments</span></a>
+      <a href="{% url 'evidence' %}" aria-label="Evidence library" title="Evidence library" {% if nav == 'evidence' %}class="active" aria-current="page"{% endif %}>{% icon "book" 18 %} <span class="nav-label">Evidence library</span></a>
+    </nav>
+    <nav class="secondary-nav" aria-label="System"><a href="{% url 'settings' %}" aria-label="About" title="About" {% if nav == 'settings' %}class="active" aria-current="page"{% endif %}>{% icon "shield" 16 %} <span class="nav-label">About</span></a>
+</nav>
+  </div></aside>
+  <main class="main" id="main" tabindex="-1">
+    {% for m in messages %}<div class="notice {{ m.tags }} no-print" role="status">{{ m }}</div>{% endfor %}
     {% block content %}{% endblock %}
   </main>
 </div>
-<script>
-  // Disable submit buttons while long actions (assessment, report generation) run.
-  document.querySelectorAll("form[data-busy]").forEach(f => f.addEventListener("submit", () => {
-    const b = f.querySelector("button[type=submit]"); if (!b) return;
-    b.disabled = true; b.classList.add("loading");
-    const t = b.querySelector(".lbl"); if (t) t.textContent = f.dataset.busy;
-  }));
-</script>
 {% block scripts %}{% endblock %}
-</body>
-</html>
+</body></html>

@@ -1,0 +1,14 @@
+{% load clinic_tags %}
+<div class="contribution-plot" aria-label="Factors increasing or reducing estimated risk">
+<div class="contribution-axis"><span class="contribution-label-heading">Recorded finding</span>
+<div><span>Reducing estimated risk</span><span>Increasing estimated risk</span>
+</div><span class="no-print">Literature</span>
+</div>{% for f in contribution_plot %}<div class="contribution-row finding-row" id="finding-{{ f.feature }}" tabindex="-1">
+<div class="contribution-label"><span class="factor-rank">{{ forloop.counter|stringformat:"02d" }}</span>
+<div><b>{{ f.label }}</b><small>{{ f.value }}</small>
+</div>
+</div>
+<div class="diverging-track" role="img" aria-label="{{ f.label }} {% if f.direction == 'raises' %}increases{% else %}reduces{% endif %} estimated risk; relative influence"><span class="diverging-zero" aria-hidden="true"></span><span class="diverging-bar {{ f.direction }}" style="width:{{ f.bar_width|stringformat:'.2f' }}%" aria-hidden="true"></span><span class="visually-hidden">{% if f.direction == 'raises' %}Increasing{% else %}Reducing{% endif %} estimated risk</span>
+</div>
+<div class="contribution-source no-print">{% if f.has_evidence %}<a class="finding-evidence" href="#evidence-{{ f.feature }}">{% if f.source_count %}{{ f.source_count }} source{{ f.source_count|pluralize }}{% else %}Summary{% endif %} &rarr;<span class="visually-hidden"> for {{ f.label }}</span></a>{% else %}<a class="finding-evidence secondary-evidence" href="{% url 'evidence' %}?q={{ f.label|urlencode }}%20IBD">Search &rarr;<span class="visually-hidden"> literature for {{ f.label }}</span></a>{% endif %}</div>
+</div>{% empty %}<p class="muted small">No contributing factors are available for this assessment.</p>{% endfor %}</div>

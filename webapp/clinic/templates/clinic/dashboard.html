@@ -1,44 +1,35 @@
 {% extends "clinic/base.html" %}{% load clinic_tags humanize %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}Overview{% endblock %}
 {% block content %}
-<div class="page-head"><h2>Dashboard</h2><span class="spacer"></span>
-  <a class="btn ghost" href="{% url 'patient_new' %}">{% icon "plus" 16 %} Add patient</a>
-  <a class="btn" href="{% url 'patients' %}">{% icon "users" 16 %} Open patients</a>
+<div class="page-heading">
+<div>
+<p class="eyebrow">YOUR CLINICAL WORKSPACE</p>
+<h1>Overview</h1>
+<p class="lede">Patient review, from recorded information to a clear next step.</p>
+</div><a class="button" href="{% url 'patients' %}">{% icon "search" 17 %} Find a patient</a>
 </div>
-
-<div class="grid stats">
-  <div class="card stat"><div class="num">{{ n_patients|intcomma }}</div><div class="lbl">Patients ({{ n_manual }} entered manually)</div></div>
-  <div class="card stat"><div class="num">{{ n_assessments }}</div><div class="lbl">Risk assessments run</div></div>
-  <div class="card stat"><div class="num">{{ n_reports }}</div><div class="lbl">Reports generated</div></div>
-  <div class="card stat"><div class="num" style="font-size:18px;padding-top:10px">{% if llm_on %}<span class="chip low">Claude connected</span>{% else %}<span class="chip grey">Offline evidence mode</span>{% endif %}</div><div class="lbl">Research assistant</div></div>
+<section class="summary-strip" aria-label="Workspace summary">
+  <a href="{% url 'patients' %}"><div class="metric-top"><span class="metric-icon">{% icon "users" 19 %}</span><span>Patient records</span></div><strong>{{ n_patients|intcomma }}</strong><small>Open directory {% icon "arrow" 14 %}</small></a>
+  <a href="{% url 'assessments' %}"><div class="metric-top"><span class="metric-icon">{% icon "clipboard" 19 %}</span><span>Completed assessments</span></div><strong>{{ n_assessments|intcomma }}</strong><small>View assessment history {% icon "arrow" 14 %}</small></a>
+  <a href="{% url 'patients' %}?risk=High"><div class="metric-top"><span class="metric-icon">{% icon "flag" 19 %}</span><span>Latest high-risk cases</span></div><strong>{{ n_high|intcomma }}</strong><small>Review patient context {% icon "arrow" 14 %}</small></a>
+</section>
+<div class="review-layout"><section class="risk-distribution"><div class="section-heading"><div><p class="eyebrow">CURRENT PATIENT RISK</p><h2>Risk distribution</h2></div>{% icon "activity" 22 %}</div><p class="distribution-total"><strong>{{ distribution_count }}</strong><span>assessed patient{{ distribution_count|pluralize }}<small>One latest assessment per patient</small></span></p>{% if distribution_count %}<div class="distribution-bar" role="img" aria-label="{% for d in distribution %}{{ d.tier }}: {{ d.count }}{% if not forloop.last %}; {% endif %}{% endfor %}">{% for d in distribution %}{% if d.count %}<span class="{{ d.tier|tier_class }}" style="width:{{ d.percent }}%"></span>{% endif %}{% endfor %}</div>{% else %}<div class="distribution-bar empty-bar" aria-hidden="true"></div>{% endif %}<ul class="distribution-legend">{% for d in distribution %}<li><a href="{% url 'assessments' %}?risk={{ d.tier }}" aria-label="View all {{ d.tier|lower }}-risk assessments"><span class="distribution-dot {{ d.tier|tier_class }}"></span><span>{{ d.tier }}</span><strong>{{ d.count }}</strong><small>{{ d.percent|floatformat:0 }}%</small></a></li>{% endfor %}</ul><p class="caption">Latest saved risk for assessed patients. Patients without an assessment are not included.</p></section><section class="attention-section">
+<div class="section-heading">
+<div>
+<p class="eyebrow">PRIORITY REVIEW</p>
+<h2>High-risk cases <span class="review-count">{{ n_high }}</span></h2>
 </div>
-
-<div class="grid" style="grid-template-columns:1.4fr 1fr;margin-top:16px">
-  <div class="card">
-    <h3>{% icon "trend" %} Recent assessments</h3>
-    {% if recent %}
-    <table class="tbl"><tr><th>Patient</th><th>Prediction</th><th>Probability</th><th>Tier</th><th>When</th></tr>
-      {% for a in recent %}<tr>
-        <td><a href="{% url 'result' a.pk %}">{{ a.patient.patient_code }}</a></td><td>{{ a.prediction }}</td>
-        <td>{{ a.probability|pct:1 }}</td><td><span class="chip {{ a.tier|tier_class }}">{{ a.tier }}</span></td>
-        <td class="muted">{{ a.created|naturaltime }}</td></tr>{% endfor %}
-    </table>
-    {% else %}<p class="muted">No assessments yet. Open a patient and press <b>Calculate IBD Risk</b>.</p>{% endif %}
-    {% with t=tiers %}{% if n_assessments %}
-    <div class="tierbar">{% for name, n in tiers %}<span style="width:{% widthratio n n_assessments 100 %}%;background:var(--{% if name == 'High' %}high{% elif name == 'Moderate' %}mod{% else %}low{% endif %})"></span>{% endfor %}</div>
-    <div class="small muted">{% for name, n in tiers %}<span class="chip {{ name|tier_class }}">{{ name }} {{ n }}</span> {% endfor %}</div>
-    {% endif %}{% endwith %}
-  </div>
-  <div class="card">
-    <h3>{% icon "shield" %} Model performance</h3>
-    <p class="small muted" style="margin-top:-8px">{{ card.name }} · {{ card.n_features }} inputs · held-out test set (500 synthetic patients)</p>
-    <div class="grid metrics">
-      <div class="metric"><b>{{ card.precision|pct }}</b>Precision</div>
-      <div class="metric"><b>{{ card.recall|pct }}</b>Recall</div>
-      <div class="metric"><b>{{ card.accuracy|pct }}</b>Accuracy</div>
-      <div class="metric"><b>{{ card.auc|floatformat:3 }}</b>ROC-AUC</div>
-    </div>
-    <div class="disclaimer">{% icon "alert" 16 %}<span>Metrics show how well the model recovers the synthetic generation formula — not clinical accuracy.</span></div>
-  </div>
 </div>
+{% if attention %}<div class="attention-list">{% for a in attention %}<a href="{% url 'result' a.pk %}" class="attention-row"><span class="priority-marker" aria-hidden="true">{% icon "flag" 16 %}</span><span><b>{{ a.patient.patient_code }}</b><small>{{ a.created|date:"j M Y, H:i" }}</small></span><span class="risk-label high">High risk</span><span class="attention-action">Review assessment {% icon "arrow" 15 %}</span></a>{% endfor %}</div>{% else %}<div class="quiet-empty">{% icon "clipboard" 22 %}<p>No patients currently have a high-risk latest assessment.</p>
+</div>{% endif %}
+<p class="caption">Based on each patient's latest assessment. Open a case to review the clinical context.</p>
+</section></div>
+<section class="surface">
+<div class="section-heading">
+<h2>Recent assessments</h2><a href="{% url 'assessments' %}">View all {% icon "arrow" 15 %}</a>
+</div>
+{% if recent %}{% include "clinic/partials/assessment_table.html" with rows=recent %}{% else %}<div class="empty">
+<h3>Start with a patient record</h3>
+<p>Review the recorded information, then run an IBD risk assessment.</p><a class="button secondary" href="{% url 'patients' %}">Open patient directory</a>
+</div>{% endif %}</section>
 {% endblock %}

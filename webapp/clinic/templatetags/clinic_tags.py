@@ -7,6 +7,31 @@ from django.utils.safestring import mark_safe
 
 register = template.Library()
 
+
+@register.filter
+def clinical_group(group):
+    """Presentation labels; keep stored feature groups and calculations unchanged."""
+    return {
+        "Demographic data": "Patient profile",
+        "Birth mode and early life": "Birth & early life",
+        "Metabolism related biomarkers": "Metabolic biomarkers",
+        "Red flags": "Red flags & surgical history",
+    }.get(group, group)
+
+
+@register.filter
+def readable_text(value):
+    """Repair reversible UTF-8/Windows text artifacts at display time only."""
+    text = str(value or "")
+    for _ in range(2):
+        if not any(marker in text for marker in ("\u00c3", "\u00c2", "\u00e2\u20ac", "\u00e2\u2020")):
+            break
+        try:
+            text = text.encode("cp1252").decode("utf-8")
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            break
+    return text
+
 # Minimal stroke icons (24x24, Lucide-style), inlined so the app needs no CDN.
 ICONS = {
     "home": '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',

@@ -1,110 +1,33 @@
-{% extends "clinic/base.html" %}{% load clinic_tags %}
-{% block title %}{% if patient %}{{ patient.patient_code }}{% else %}Patients{% endif %}{% endblock %}
+{% extends "clinic/base.html" %}{% load clinic_tags humanize %}
+{% block title %}Patient directory{% endblock %}
 {% block content %}
-<div class="two-pane">
-  <aside class="card plist">
-    <h3><a href="{% url 'dashboard' %}" style="color:inherit">{% icon "back" 18 %}</a> Patients
-      <a class="btn ghost" style="margin-left:auto;padding:5px 9px;font-size:12px" href="{% url 'patient_new' %}">{% icon "plus" 14 %} Add</a></h3>
-    <form class="searchbox" method="get">{% icon "search" 16 "muted" %}
-      <input name="q" value="{{ q }}" placeholder="Search by Patient ID, age or sex…" aria-label="Search patients">
-    </form>
-    {% for p in page.object_list %}
-      <a class="pitem {% if patient and p.pk == patient.pk %}active{% endif %}"
-         href="{% url 'patient' p.pk %}?{% if q %}q={{ q|urlencode }}&{% endif %}page={{ page.number }}">
-        <div class="avatar">{% icon "user" 18 %}</div>
-        <div><b>{{ p.patient_code }}</b><small>Age {{ p.age }} • {{ p.sex }}{% if p.source == "manual" %} • <span class="chip teal" style="padding:0 6px">manual</span>{% endif %}</small></div>
-      </a>
-    {% empty %}<p class="muted">No patients match “{{ q }}”.</p>{% endfor %}
-    <div class="pager">
-      {% if page.has_previous %}<a href="?{% if q %}q={{ q|urlencode }}&{% endif %}page={{ page.previous_page_number }}">‹ Prev</a>{% else %}<span></span>{% endif %}
-      <span class="muted">Page {{ page.number }} / {{ page.paginator.num_pages }} · {{ page.paginator.count }} patients</span>
-      {% if page.has_next %}<a href="?{% if q %}q={{ q|urlencode }}&{% endif %}page={{ page.next_page_number }}">Next ›</a>{% else %}<span></span>{% endif %}
-    </div>
-  </aside>
-
-  {% if patient %}{% with d=patient.data %}
-  <section>
-    <div class="card" style="margin-bottom:16px">
-      <div class="profile-head">
-        <div><h2>Patient Profile</h2><div class="muted">Patient ID: {{ patient.patient_code }}</div></div>
-        <span class="demo-badge sm">DEMO — SYNTHETIC DATA</span>
-        <div class="facts"><span>Age <b>{{ d.age_years }}</b></span><span>|</span><span><b>{{ d.sex }}</b></span><span>|</span><span>BMI <b>{{ d.BMI_kg_m2 }} kg/m²</b></span></div>
-      </div>
-
-      <div class="grid profile-grid">
-        <div class="card">
-          <h3>{% icon "users" %} Patient Demographics</h3>
-          <div class="kv">{% icon "user" 18 %}<span class="k">Age</span><span class="v">{{ d.age_years }} years</span></div>
-          <div class="kv">{% icon "heart" 18 %}<span class="k">Sex</span><span class="v">{{ d.sex }}</span></div>
-          <div class="kv">{% icon "activity" 18 %}<span class="k">BMI</span><span class="v">{{ d.BMI_kg_m2 }} kg/m²</span></div>
-          <div class="kv">{% icon "baby" 18 %}<span class="k">Birth</span><span class="v">{{ d.birth_mode }}</span></div>
-        </div>
-
-        <div class="card">
-          <h3>{% icon "microbe" %} Gut Microbiome &amp; Dysbiosis</h3>
-          <div class="micro">
-            <div>
-              <div class="ring-wrap">
-                <svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="#e3f3f1" stroke-width="11"/>
-                  <circle cx="60" cy="60" r="50" fill="none" stroke="var(--teal-700)" stroke-width="11" stroke-linecap="round"
-                          stroke-dasharray="{% widthratio shannon_pct 100 314 %} 314"/></svg>
-                <div class="ring-label"><div>Diversity<b>{{ shannon_level }}</b></div></div>
-              </div>
-              <div class="small" style="margin-top:8px">Microbial Diversity<br><b>{{ shannon }}</b> <span class="muted">(Shannon)</span></div>
-            </div>
-            <div>
-              <div class="small muted" style="margin-bottom:6px">Relative abundance (selected taxa)</div>
-              {% for m in microbes %}
-              <div class="abund"><span>{{ m.label }}</span><div class="track"><div class="fill {% if forloop.counter > 2 %}alt{% endif %}" style="width:{{ m.pct }}%"></div></div><span>{{ m.value }}%</span></div>
-              {% endfor %}
-              <div class="abund"><span>F/B ratio</span><span></span><span>{{ fb_ratio }}</span></div>
-              <div class="small muted" style="margin-top:6px">Candidate microbiome features / research biomarkers</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>{% icon "flask" %} Clinical Biomarkers</h3>
-          {% for b in biomarkers %}
-          <div class="bio">{% icon "drop" 20 %}<div><div class="muted small">{{ b.label }}</div><span class="val {{ b.level }}">{{ b.value }}</span></div></div>
-          {% endfor %}
-        </div>
-      </div>
-
-      <div class="grid" style="grid-template-columns:2.35fr 1fr;margin-top:16px">
-        <div class="card">
-          <h3>{% icon "clipboard" %} Clinical &amp; Lifestyle Factors</h3>
-          <div class="grid lifestyle-grid">
-            {% for f in lifestyle %}
-            <div class="ls">{% icon f.icon 18 %}<div><small>{{ f.label }}</small><b>{{ f.value }}</b></div></div>
-            {% endfor %}
-          </div>
-        </div>
-        <div class="card ai-card">
-          {% icon "brain" 40 %}
-          <h3>AI Risk Assessment</h3>
-          <p class="muted small" style="margin:0">Combine clinical, lifestyle, microbiome and metabolic features using machine learning</p>
-          <form method="post" action="{% url 'assess' patient.pk %}" data-busy="Calculating…">{% csrf_token %}
-            <button class="btn lg" type="submit"><span class="spinner"></span><span class="lbl">Calculate IBD Risk</span> {% icon "arrow" 18 %}</button>
-          </form>
-          {% if last %}<a class="small" href="{% url 'result' last.pk %}">Last result: <span class="chip {{ last.tier|tier_class }}">{{ last.tier }} · {{ last.probability|pct }}</span></a>{% endif %}
-        </div>
-      </div>
-
-      <details class="more">
-        <summary>All 61 model inputs (10 groups)</summary>
-        <div class="grid groups-grid" style="margin-top:10px">
-          {% for g in groups %}
-          <div class="card"><h3>{% icon g.group|group_icon %} {{ g.group }}</h3>
-            <table class="tbl group-tbl">{% for i in g.items %}<tr><td>{{ i.label }}</td><td>{{ i.value }}</td></tr>{% endfor %}</table>
-          </div>
-          {% endfor %}
-        </div>
-      </details>
-    </div>
-  </section>
-  {% endwith %}{% else %}
-  <section class="card"><p class="muted">No patients yet. Run <code>python manage.py load_patients</code> or <a href="{% url 'patient_new' %}">add a patient</a>.</p></section>
-  {% endif %}
+<div class="page-heading">
+<div>
+<p class="eyebrow">PATIENT DIRECTORY</p>
+<h1>Patients</h1>
+<p class="lede">Find a record to review clinical information and assessments.</p>
+</div><a class="button" href="{% url 'patient_new' %}">{% icon "plus" 17 %} Add patient</a>
 </div>
+<form class="directory-search" method="get"><label class="search-label" for="patient-search">Find a patient<div class="input-with-icon">{% icon "search" 19 %}<input id="patient-search" type="search" name="q" value="{{ q }}" placeholder="Search by patient ID, age or sex">
+</div></label>{% include "clinic/partials/risk_filter.html" with directory=True %}<button class="button secondary" type="submit">Search</button>
+</form>
+<div class="list-heading">
+<p>{{ page.paginator.count|intcomma }} patient record{{ page.paginator.count|pluralize }}{% if q or risk %} found{% endif %}</p>{% if q or risk %}<a href="{% url 'patients' %}">Clear search &amp; filters</a>{% endif %}</div>
+<section class="surface directory" aria-label="Patient records">
+{% if page.object_list %}<div class="table-scroll">
+<table class="data-table">
+<thead>
+<tr><th scope="col">Patient ID</th><th scope="col">Age</th><th scope="col">Sex</th><th scope="col">Latest assessment</th><th scope="col">Latest risk</th><th scope="col"><span class="visually-hidden">Actions</span></th>
+</tr>
+</thead>
+<tbody>
+{% for p in page.object_list %}<tr><th scope="row"><a class="patient-link" href="{% url 'patient' p.pk %}">{{ p.patient_code }}</a></th><td>{{ p.age }} years</td><td>{{ p.sex }}</td><td>{% if p.latest_assessed %}{{ p.latest_assessed|date:"j M Y, H:i" }}{% else %}<span class="muted">Not assessed</span>{% endif %}</td><td>{% if p.latest_tier %}<span class="risk-label {{ p.latest_tier|tier_class }}">{{ p.latest_tier }}</span>{% else %}<span class="muted">&mdash;</span>{% endif %}</td><td class="row-action"><a href="{% url 'patient' p.pk %}" aria-label="Open patient {{ p.patient_code }}">Open record &rarr;</a></td>
+</tr>{% endfor %}
+</tbody>
+</table>
+</div>{% else %}<div class="empty"><span class="empty-mark">{% icon "users" 28 %}</span>
+<h2>{% if q or risk %}No matching patient{% else %}Your patient directory is ready{% endif %}</h2>
+<p>{% if q or risk %}Try another patient ID or clear the filters.{% else %}Add a patient record to begin the assessment workflow.{% endif %}</p><a class="button secondary" href="{% if q or risk %}{% url 'patients' %}{% else %}{% url 'patient_new' %}{% endif %}">{% if q or risk %}Clear search{% else %}Add patient{% endif %}</a>
+</div>{% endif %}
+</section>{% include "clinic/partials/pagination.html" %}
 {% endblock %}

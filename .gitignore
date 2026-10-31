@@ -3,3 +3,5 @@
 .venv39_backup/
 webapp/db.sqlite3
 __pycache__/
+webapp/staticfiles/
+.cache/

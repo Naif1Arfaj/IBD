@@ -1,0 +1,32 @@
+# Free demo only: local assessment data resets on restart/redeploy.
+services:
+  - type: web
+    name: ibd-care-demo
+    runtime: python
+    plan: free
+    buildCommand: bash deploy/build.sh
+    startCommand: bash deploy/start.sh
+    healthCheckPath: /login/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_TRUST_PROXY
+        value: "1"
+      - key: DEMO_NURSE_PASSWORD
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        value: ""
+      - key: OMP_NUM_THREADS
+        value: "1"
+      - key: OPENBLAS_NUM_THREADS
+        value: "1"
+      - key: MKL_NUM_THREADS
+        value: "1"
+      - key: NUMBA_NUM_THREADS
+        value: "1"
+      - key: TOKENIZERS_PARALLELISM
+        value: "false"

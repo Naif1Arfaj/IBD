@@ -2,11 +2,9 @@
 
 IBD Care
 
-Machine Learning-Based Prediction of Inflammatory Bowel Disease Risk Using Gut Dysbiosis Biomarkers in Saudi Youth
+Inflammatory Bowel Disease Risk Assessment & Clinical Decision Support
 
-A nurse-focused clinical decision-support prototype combining interpretable machine learning, patient-level explanations, and evidence-grounded research retrieval.
-
-Nursing Innovation Hackathon 2026 · Team NH-74 · Track 3 — AI-Driven Clinical Decision Support
+A nurse-focused clinical decision-support prototype that combines interpretable machine learning, patient-level explanations, and evidence-grounded research retrieval in one clinical workflow.
 
 <br>
 
@@ -14,100 +12,106 @@ Nursing Innovation Hackathon 2026 · Team NH-74 · Track 3 — AI-Driven Clinica
 
 
 
+<br>
 
-
+Hackathon ID: NH-74   |   Demo User: nurse   |   Password: nurse-demo26
 
 </div>
 
-[!IMPORTANT]
-IBD Care is a demonstration prototype built with synthetic data.
-It is not validated for clinical use, does not provide a diagnosis, and must not be used to guide treatment. Model outputs and SHAP explanations reflect relationships in the synthetic data-generation process rather than validated clinical biology.
+Project at a Glance
 
-Overview
 
-IBD Care is a clinical decision-support prototype designed to help nurses review patient information, run an interpretable IBD risk assessment, understand the main factors influencing the estimate, and explore supporting research evidence within one workflow.
 
-Rather than presenting AI as an autonomous decision-maker, the system follows a Human-Centered AI (HCAI) approach:
 
-the nurse remains the final decision-maker;
 
-the system communicates risk, not diagnosis;
+Project Type
 
-patient-level explanations are shown in clinically understandable language;
+Clinical decision-support prototype
 
-technical implementation details are kept outside the primary nursing workflow;
+Primary User
 
-supporting literature is available when deeper review is needed;
+Nurses / clinical care teams
 
-safety, validation status, and synthetic-data limitations remain transparent.
+Clinical Focus
 
-The Problem
+Early IBD risk assessment
 
-IBD-related risk assessment can involve information from multiple domains: demographics, family history, lifestyle, medication exposure, inflammatory markers, microbiome characteristics, metabolic biomarkers, and clinical red flags.
+Dataset
 
-A useful decision-support system therefore needs to do more than output a classification. It should help clinicians answer:
+2,500 synthetic patient records
 
-What is the estimated risk for this patient?
+Model Inputs
 
-Which recorded factors influenced that estimate?
+61 structured clinical, lifestyle, microbiome and biomarker features
 
-What evidence is available for the relevant findings?
+Selected Model
 
-What should the nurse review next?
+Sparse Logistic Regression (L1)
 
-How can the result be documented clearly without presenting AI output as a diagnosis?
+Explainability
 
-IBD Care combines these tasks into one clinical workflow.
+Patient-level SHAP explanations
 
-Key Capabilities
+Evidence Engine
 
-Capability
+Hybrid RAG using BGE embeddings + BM25 + RRF
 
-What it does
+Research Corpus
 
-Patient workspace
+67 papers / 2,280 indexed passages
 
-Search, add, and review patient records in a nurse-focused interface
+Web App
 
-IBD risk assessment
+Django
 
-Uses 61 structured inputs to estimate IBD risk
+Deployment
 
-Risk stratification
+Render
 
-Presents estimated probability with Low / Moderate / High risk tiers
+Quick Access
 
-Explainable AI
 
-Identifies patient-specific factors that increased or reduced the model estimate
 
-Assessment history
 
-Compares saved estimates over time without implying disease progression
 
-Clinical snapshot
 
-Summarizes important recorded biomarkers, family history, antibiotic exposure, and flags
 
-Evidence Library
 
-Searches a curated IBD research collection using hybrid retrieval
 
-Grounded summaries
 
-Optionally uses Claude to synthesize retrieved evidence with citations
 
-Offline evidence mode
+Why IBD Care?
 
-Works without an LLM API key by returning retrieved passages and citations
+IBD risk assessment may involve information from several domains at once: demographics, family history, lifestyle, medication exposure, inflammatory markers, microbiome characteristics, metabolic biomarkers and clinical red flags.
 
-Unified report
+IBD Care brings these signals together into one nurse-focused workflow that helps answer:
 
-The assessment result is immediately printable / saveable as PDF
+Clinical Question
 
-Human oversight
+IBD Care Response
 
-Keeps clinical judgment and final interpretation with the care team
+What is the patient's estimated IBD risk?
+
+ML-generated probability and Low / Moderate / High risk level
+
+Why did the model estimate this risk?
+
+Patient-specific contributing factors
+
+What changed from the previous assessment?
+
+Risk-over-time comparison
+
+What evidence supports the finding?
+
+Retrieved literature linked to relevant findings
+
+What should be reviewed next?
+
+Clinical next-step guidance and report-ready assessment
+
+Clinical Safety Notice
+IBD Care is a demonstration prototype using synthetic data. It is not validated for clinical use, does not provide a diagnosis, and must not be used independently to guide treatment.
 
 System Architecture
 
@@ -124,120 +128,111 @@ System Architecture
   }
 }}%%
 flowchart LR
-    N["Nurse / Clinical User"] --> UI["Django Clinical Workspace"]
+    USER["Nurse / Clinical User"] --> WEB["Django Clinical Workspace"]
 
-    subgraph APP["Clinical Application"]
-        UI --> P["Patient Record"]
-        P --> A["61-Input Assessment"]
-        UI --> H["Assessment History"]
-        UI --> EL["Evidence Library"]
+    subgraph CLINICAL["Clinical Application"]
+        WEB --> PATIENT["Patient Record"]
+        PATIENT --> ASSESS["61-Input Assessment"]
+        WEB --> HISTORY["Assessment History"]
+        WEB --> EVIDENCE["Evidence Library"]
     end
 
-    subgraph ML["Risk Estimation"]
-        A --> ENC["Feature Validation & Encoding"]
-        ENC --> MODEL["Sparse Logistic Regression (L1)"]
-        MODEL --> RISK["Risk Probability + Tier"]
-        MODEL --> SHAP["Patient-Level SHAP Explanation"]
-        SHAP --> FACTORS["Top Contributing Factors"]
+    subgraph MODEL["Risk Estimation"]
+        ASSESS --> ENCODE["Validation + Encoding"]
+        ENCODE --> LR["Sparse Logistic Regression (L1)"]
+        LR --> RISK["Risk Probability + Tier"]
+        LR --> EXPLAIN["SHAP Explanation"]
+        EXPLAIN --> FACTORS["Top Contributing Factors"]
     end
 
     subgraph RAG["Evidence Pipeline"]
-        EL --> QUERY["Clinical / Evidence Query"]
-        QUERY --> DENSE["BGE-small Dense Retrieval"]
-        QUERY --> BM25["BM25 Keyword Retrieval"]
-        DENSE --> RRF["Reciprocal Rank Fusion"]
-        BM25 --> RRF
-        RRF --> PASSAGES["Top Research Passages + Metadata"]
-        PASSAGES --> MODE{"Claude available?"}
+        EVIDENCE --> QUERY["Clinical Query"]
+        QUERY --> DENSE["BGE Dense Retrieval"]
+        QUERY --> SPARSE["BM25 Retrieval"]
+        DENSE --> FUSION["RRF Fusion"]
+        SPARSE --> FUSION
+        FUSION --> PASSAGES["Research Passages + Metadata"]
+        PASSAGES --> MODE{"Claude API available?"}
         MODE -->|Yes| CLAUDE["Grounded Summary + Citations"]
-        MODE -->|No| OFFLINE["Retrieval-Only Evidence + Citations"]
+        MODE -->|No| OFFLINE["Retrieval-Only Evidence"]
     end
 
-    subgraph DATA["Persistence"]
+    subgraph STORAGE["Data & Artifacts"]
         DB[("SQLite / Django ORM")]
-        LIB["67 Research Papers"]
-        IDX["2,280 Indexed Passages"]
-        ART["Trained Model Artifact"]
+        MODELFILE["model.joblib"]
+        PAPERS["67 Research Papers"]
+        INDEX["2,280 Indexed Passages"]
     end
 
-    P <--> DB
-    H <--> DB
-    MODEL <--> ART
-    LIB --> IDX
-    IDX --> DENSE
-    IDX --> BM25
+    PATIENT <--> DB
+    HISTORY <--> DB
+    LR <--> MODELFILE
+    PAPERS --> INDEX
+    INDEX --> DENSE
+    INDEX --> SPARSE
 
-    RISK --> REPORT["Unified Assessment / Clinical Report"]
+    RISK --> REPORT["Unified Clinical Assessment"]
     FACTORS --> REPORT
     CLAUDE --> REPORT
     OFFLINE --> REPORT
-    REPORT --> N
+    REPORT --> USER
 
     classDef clinical fill:#E8F1F3,stroke:#72AEB8,color:#183747,stroke-width:1.5px;
-    classDef ml fill:#EBF2ED,stroke:#456C5B,color:#183747,stroke-width:1.5px;
-    classDef evidence fill:#F1EDF3,stroke:#796382,color:#183747,stroke-width:1.5px;
-    classDef output fill:#F7EAE6,stroke:#A14337,color:#183747,stroke-width:1.5px;
+    classDef model fill:#EBF2ED,stroke:#456C5B,color:#183747,stroke-width:1.5px;
+    classDef rag fill:#F1EDF3,stroke:#796382,color:#183747,stroke-width:1.5px;
+    classDef result fill:#F7EAE6,stroke:#A14337,color:#183747,stroke-width:1.5px;
 
-    class UI,P,A,H clinical;
-    class ENC,MODEL,RISK,SHAP,FACTORS ml;
-    class EL,QUERY,DENSE,BM25,RRF,PASSAGES,MODE,CLAUDE,OFFLINE evidence;
-    class REPORT output;
+    class WEB,PATIENT,ASSESS,HISTORY clinical;
+    class ENCODE,LR,RISK,EXPLAIN,FACTORS model;
+    class EVIDENCE,QUERY,DENSE,SPARSE,FUSION,PASSAGES,MODE,CLAUDE,OFFLINE rag;
+    class REPORT result;
 
-End-to-End Clinical Workflow
+Clinical Workflow
 
-Patient record
-     ↓
-Review clinical snapshot
-     ↓
-61 structured inputs
-     ↓
-ML risk estimation
-     ↓
-Low / Moderate / High estimated risk
-     ↓
-Patient-specific contributing factors
-     ↓
-Supporting research evidence
-     ↓
-Nurse / clinician review
-     ↓
-Printable assessment report
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#E8F1F3","primaryBorderColor":"#72AEB8","lineColor":"#796382","primaryTextColor":"#183747"}}}%%
+flowchart LR
+    A["Open Patient Record"] --> B["Review Clinical Snapshot"]
+    B --> C["Run IBD Risk Assessment"]
+    C --> D["Review Estimated Risk"]
+    D --> E["Review Contributing Factors"]
+    E --> F["Open Supporting Evidence"]
+    F --> G["Clinical Review"]
+    G --> H["Print / Save Assessment"]
 
-The system intentionally keeps the human review step after the AI output.
+The system intentionally places clinical review after model output. The AI supports decision-making; it does not replace clinical judgment.
 
-Machine Learning Pipeline
+Machine Learning
 
-Dataset
+<details open>
+<summary><b>Dataset & Feature Design</b></summary>
 
-The current prototype uses Saudi_IBD_Synthetic.xlsx.
+<br>
 
-Item
+The prototype uses Saudi_IBD_Synthetic.xlsx.
+
+Dataset Property
 
 Value
 
-Records
+Patient records
 
-2,500 synthetic patients
-
-Target
-
-synthetic_IBD_outcome
-
-IBD prevalence in synthetic data
-
-24.7%
+2,500
 
 Model inputs
 
-61 features
+61
 
-Input groups
+Feature groups
 
 10
 
+Synthetic IBD prevalence
+
+24.7%
+
 Train / test split
 
-80% / 20%
+80 / 20
 
 Held-out test set
 
@@ -247,110 +242,153 @@ Random seed
 
 42
 
-Input Groups
+Feature Groups
 
-The 61 model inputs are organized into:
+Group
 
-Demographic data
+Examples
+
+Demographics
+
+Age, sex, BMI
 
 Family history
 
+First-degree IBD history
+
 Diet
+
+Fiber intake, fast food, ultra-processed food
 
 Lifestyle
 
-Medication and antibiotics
+Stress, sleep, physical activity, smoking
 
-Birth mode and early life
+Medication
 
-Microbiome diversity
+Antibiotics, PPI, NSAIDs
+
+Early life
+
+Birth mode, breastfeeding
+
+Microbiome
+
+Shannon diversity, Faecalibacterium, Proteobacteria
 
 Inflammatory biomarkers
 
-Metabolism-related biomarkers
+Fecal calprotectin, CRP, vitamin D
+
+Metabolic biomarkers
+
+Butyrate, tryptophan-related markers
 
 Red flags
 
-Examples include fecal calprotectin, CRP, vitamin D, Shannon diversity, Faecalibacterium abundance, Proteobacteria abundance, butyrate-related biomarkers, antibiotic exposure, fiber intake, family history, and clinical flags.
+Clinical and surgical flags
 
 Leakage Prevention
 
-The following fields are explicitly excluded from model inputs:
+The model excludes identifiers and synthetic composite scores that could leak the target, including:
 
 patient ID;
 
-the target label;
+target label;
 
 synthetic risk probability;
 
-composite dysbiosis / microbial / metabolomic risk scores;
+composite dysbiosis score;
 
-oral contraceptive use.
+microbial risk score;
 
-This prevents the model from learning directly from synthetic target-generating scores or identifiers.
+metabolomic risk score.
 
-Model Selection
+</details>
 
-Multiple candidate models are compared:
+<details>
+<summary><b>Model Selection</b></summary>
+
+<br>
+
+Candidate models evaluated:
+
+Model
+
+Role
 
 Logistic Regression (L2)
 
+Linear baseline
+
 Sparse Logistic Regression (L1)
 
-Logistic Regression with spline features
+Selected final model
+
+Logistic Regression + splines
+
+Non-linear linear-model variant
 
 Random Forest
 
+Tree ensemble
+
 HistGradientBoosting
 
-Ensemble model
+Gradient boosting
 
-Model selection uses nested 5-fold cross-validation on the training set, with PR-AUC as the primary tuning metric.
+Ensemble
+
+Combined candidate
+
+Model selection uses nested 5-fold cross-validation with PR-AUC as the primary tuning metric.
 
 Selected Model
 
 Sparse Logistic Regression (L1)
 
-Why it was selected:
-
-highest out-of-fold PR-AUC among the evaluated candidates;
-
-strong performance on structured tabular data;
-
-sparse coefficients reduce unnecessary signal;
-
-easier to interpret than more complex black-box alternatives;
-
-supports transparent patient-level explanations.
-
-Final tuned regularization:
-
 C = 0.3
 
-Decision Logic
+It was selected because it combined strong predictive performance with transparency and sparse feature weighting, making it suitable for a clinical decision-support prototype.
 
-The classification threshold is selected by maximizing F1 while requiring recall of at least 0.85 on out-of-fold training predictions.
+</details>
+
+<details>
+<summary><b>Risk Decision Logic</b></summary>
+
+<br>
 
 Classification threshold = 0.454
 
-Risk tiers are displayed separately:
+Risk tiers:
 
-Low       < 0.20
-Moderate  0.20 – < 0.50
-High      ≥ 0.50
+Risk Level
 
-The probability and risk tier are presented as estimated model risk, not as a clinical diagnosis.
+Probability
+
+Low
+
+< 0.20
+
+Moderate
+
+0.20 – < 0.50
+
+High
+
+≥ 0.50
+
+The interface presents these values as estimated risk, not diagnosis.
+
+</details>
 
 Model Evaluation
 
-[!WARNING]
-These metrics measure how well the model recovers patterns in the synthetic dataset. They must not be interpreted as clinical or diagnostic performance.
-
-Held-Out Test Set
+These results measure recovery of patterns in the synthetic dataset. They must not be interpreted as validated clinical diagnostic performance.
 
 Metric
 
-Result
+Held-Out Result
 
 ROC-AUC
 
@@ -384,297 +422,218 @@ NPV
 
 0.936
 
-Brier score
+Brier Score
 
 0.059
 
-The held-out set contains 500 synthetic records that were not used for model training or hyperparameter tuning.
-
 Explainability
 
-IBD Care uses SHAP-based patient-level explanations.
 
-For the selected linear model, the explanation layer computes exact linear feature contributions relative to a background sample. The system then ranks the most influential recorded factors for the individual assessment.
 
-The clinical interface does not expose raw SHAP values as the main explanation. Instead, it translates them into:
+The selected linear model is paired with patient-level explanation logic.
 
-Factors increasing estimated risk
+Instead of exposing raw SHAP values to nurses, the interface translates model contributions into two clinically readable groups:
 
-Factors reducing estimated risk
+Direction
 
-This supports interpretability without presenting model explanations as biological causality.
+Interface Meaning
 
-Examples of high-impact model features
+Increasing estimated risk
 
-The current synthetic model places strong importance on variables including:
+Recorded factors that pushed the model estimate upward
 
-fecal calprotectin;
+Reducing estimated risk
 
-fecal butyrate;
+Recorded factors that pushed the model estimate downward
 
-Shannon diversity;
+Examples of high-impact model features in the synthetic prototype include:
 
-ultra-processed food frequency;
+fecal calprotectin · fecal butyrate · Shannon diversity · antibiotic courses · fiber intake · Proteobacteria abundance · fast-food frequency
 
-antibiotic courses;
+These values explain model behavior, not biological causality.
 
-fiber intake;
+Evidence-Grounded RAG
 
-Proteobacteria abundance;
+<details open>
+<summary><b>Research Retrieval Architecture</b></summary>
 
-serum butyrate;
+<br>
 
-fast-food frequency;
+%%{init: {"theme":"base","themeVariables":{"primaryColor":"#F1EDF3","primaryBorderColor":"#796382","lineColor":"#72AEB8","primaryTextColor":"#183747"}}}%%
+flowchart LR
+    PDF["67 Full-Text Papers"] --> EXTRACT["PyMuPDF Extraction"]
+    EXTRACT --> CHUNKS["2,280 Passages"]
+    CHUNKS --> EMBED["BGE-small Embeddings"]
+    CHUNKS --> BM["BM25 Index"]
+    EMBED --> RRF["Reciprocal Rank Fusion"]
+    BM --> RRF
+    RRF --> TOP["Top Evidence Passages"]
+    TOP --> C{"Claude configured?"}
+    C -->|Yes| SUM["Grounded Summary + Citations"]
+    C -->|No| RET["Retrieval-Only Evidence"]
 
-indole-3-acetic acid.
+Chunking
 
-Again, these rankings describe the synthetic model, not validated clinical importance.
+Setting
 
-Evidence-Grounded RAG Pipeline
+Value
 
-The Evidence Library complements the risk model with research retrieval.
+Chunk size
 
-It is intentionally separate from the classifier:
+300 words
 
-The ML model estimates risk. The RAG pipeline retrieves and summarizes literature.
+Overlap
 
-The language model does not generate the IBD risk score.
+60 words
 
-Research Corpus
+Minimum chunk
 
-67 full-text research papers
-        ↓
-PDF extraction
-        ↓
-2,280 indexed passages
+40 words
 
-1. PDF Ingestion
+Metadata retained
 
-PyMuPDF extracts text and document metadata from the research library.
+paper title · year · DOI · page number · PDF filename
 
-Each document is divided into overlapping chunks:
+</details>
 
-Chunk size:   300 words
-Overlap:       60 words
-Minimum:       40 words
+<details>
+<summary><b>Hybrid Retrieval</b></summary>
 
-Metadata retained for evidence includes:
+<br>
 
-paper title;
+Dense retrieval
 
-year;
 
-DOI when available;
 
-PDF filename;
+Used for semantic similarity.
 
-source page number.
+Sparse retrieval
 
-2. Hybrid Retrieval
 
-IBD Care uses two retrieval strategies in parallel:
 
-Dense semantic retrieval
+Used for exact biomedical terminology and biomarker names.
 
-Embedding model: BAAI/bge-small-en-v1.5
+Fusion
 
-Runtime: FastEmbed
 
-Similarity: cosine similarity
 
-Sparse keyword retrieval
+Dense and sparse rankings are merged using Reciprocal Rank Fusion.
 
-BM25
+</details>
 
-useful for exact biomedical terminology and biomarker names
+<details>
+<summary><b>Claude Integration</b></summary>
 
-The two rankings are merged using:
+<br>
 
-Reciprocal Rank Fusion (RRF)
+When ANTHROPIC_API_KEY is configured, the top retrieved passages are sent to Claude for grounded evidence summaries.
 
-Dense retrieval ─┐
-                 ├─→ RRF fusion → evidence passages
-BM25 retrieval ──┘
+Claude is instructed to:
 
-3. Grounded Evidence Generation
-
-When an Anthropic API key is configured, retrieved passages are provided to Claude to generate concise evidence summaries with citations.
-
-The clinical research assistant is instructed to:
-
-use only the supplied retrieved literature;
+answer only from retrieved literature;
 
 cite factual claims;
 
-state when evidence is weak, mixed, or unavailable;
-
 avoid diagnosis;
 
-distinguish synthetic model output from published clinical evidence;
+distinguish research evidence from synthetic model output;
 
-write for nurses and physicians.
+state when evidence is weak or mixed;
 
-4. Offline Mode
+write for nurses and clinicians.
 
-The Evidence Library remains usable without an LLM API key.
+Without an API key, the Evidence Library automatically falls back to retrieval-only mode.
 
-In offline mode the system returns:
+</details>
 
-retrieved passages;
+Clinical Application
 
-paper titles;
+Screen
 
-years;
-
-pages;
-
-citations.
-
-This keeps the retrieval layer functional even when generation is unavailable.
-
-Web Application
-
-The clinical application is built with Django and designed around a nursing workflow.
-
-Main Screens
+Purpose
 
 Overview
 
-patient count;
-
-completed assessment count;
-
-current risk distribution;
-
-priority high-risk cases;
-
-direct access to patient review.
+Patient count, assessment count, risk distribution and priority review
 
 Patients
 
-full patient search;
-
-risk filtering;
-
-add-patient workflow;
-
-dedicated patient record pages.
+Search, filter, add and open patient records
 
 Patient Record
 
-clinical snapshot;
-
-latest estimated risk;
-
-key recorded biomarkers;
-
-family history;
-
-antibiotic exposure;
-
-recorded flags;
-
-assessment history;
-
-estimated risk over time.
+Clinical snapshot, risk history, biomarkers and flags
 
 Assessment
 
-Inputs are organized into six nurse-facing sections:
-
-patient profile;
-
-clinical history;
-
-lifestyle / diet;
-
-biomarkers;
-
-microbiome;
-
-red flags / surgical history.
+Structured 61-input assessment divided into nurse-friendly sections
 
 Assessment Result
 
-The result page acts as the clinical report and includes:
-
-patient and assessment identity;
-
-estimated IBD risk;
-
-risk tier and risk scale;
-
-contributing-factor visualization;
-
-suggested next step;
-
-comparison with a previous assessment when available;
-
-supporting literature;
-
-print / save PDF.
+Unified report with risk scale, contributing factors, comparison and evidence
 
 Evidence Library
 
-Supports clinical literature search without exposing RAG implementation terminology in the nurse-facing UI.
+Search the research corpus
 
 About
 
-Centralizes:
+Intended use, safety, validation status and transparency
 
-intended use;
+Assessment Form Sections
 
-safety;
+Patient profile · Clinical history · Lifestyle / diet · Biomarkers · Microbiome · Red flags / surgical history
 
-synthetic-data notice;
+Human-Centered AI
 
-validation status;
+IBD Care is designed around Human-Centered AI (HCAI) principles.
 
-human oversight;
+Principle
 
-technical transparency.
-
-Human-Centered AI Design
-
-The interface follows several HCAI principles:
+Implementation
 
 Human control
 
-The system supports nurses and clinicians; it does not replace clinical judgment.
+Nurses and clinicians retain final judgment
 
 Explainability
 
-Every assessment can surface patient-specific factors influencing the estimate.
+Patient-specific contributing factors are visible
 
 Progressive disclosure
 
-Clinical users see the information needed for the current task without being overwhelmed by model implementation details.
+Technical detail appears only when needed
 
-Appropriate uncertainty
+Uncertainty awareness
 
-Results are framed as estimated risk rather than diagnosis.
+Results are framed as estimated risk
 
 Evidence access
 
-Supporting research is available when deeper review is needed.
+Findings can be linked to supporting literature
 
-Avoiding automation bias
+Automation-bias reduction
 
-The interface explicitly separates:
-
-model estimate;
-
-model explanation;
-
-published evidence;
-
-human clinical interpretation.
+Model estimate, explanation, evidence and clinical interpretation are separated
 
 Safety transparency
 
-Synthetic-data and validation limitations remain accessible without overwhelming every screen with repeated warnings.
+Synthetic-data and validation limits remain accessible
 
 Technology Stack
+
+<div align="center">
+
+
+
+
+
+
+
+
+
+
+</div>
 
 Layer
 
@@ -712,15 +671,11 @@ Explainability
 
 SHAP
 
-Training plots
-
-Matplotlib
-
 PDF extraction
 
 PyMuPDF
 
-Dense embeddings
+Dense retrieval
 
 FastEmbed
 
@@ -730,7 +685,7 @@ BAAI/bge-small-en-v1.5
 
 Sparse retrieval
 
-BM25 (rank-bm25)
+BM25 / rank-bm25
 
 Rank fusion
 
@@ -738,35 +693,35 @@ Reciprocal Rank Fusion
 
 Evidence generation
 
-Anthropic Claude (optional)
+Anthropic Claude
 
-Deployment target
-
-Render
-
-Spreadsheet input
+Spreadsheet support
 
 OpenPyXL
+
+Deployment
+
+Render
 
 Project Structure
 
 IBD/
 │
 ├── artifacts/
-│   ├── model.joblib             # Trained model + metadata
-│   ├── model_report.md          # Training/evaluation report
+│   ├── model.joblib
+│   ├── model_report.md
 │   ├── roc_pr.png
 │   ├── calibration.png
 │   └── shap_summary.png
 │
-├── Full text article/           # Curated IBD research PDFs
+├── Full text article/
 │
 ├── rag/
-│   ├── ingest.py                # PDF extraction and chunking
-│   ├── index.py                 # Embeddings + BM25 index
-│   ├── retrieve.py              # Hybrid retrieval + RRF
-│   ├── evidence.py              # Evidence orchestration
-│   └── llm.py                   # Claude grounded summaries
+│   ├── ingest.py
+│   ├── index.py
+│   ├── retrieve.py
+│   ├── evidence.py
+│   └── llm.py
 │
 ├── rag_index/
 │   ├── embeddings.npy
@@ -775,44 +730,32 @@ IBD/
 │
 ├── webapp/
 │   ├── clinic/
-│   │   ├── templates/           # Clinical UI
-│   │   ├── static/              # CSS / JavaScript
-│   │   ├── management/          # Data and index commands
+│   │   ├── templates/
+│   │   ├── static/
+│   │   ├── management/
 │   │   ├── models.py
 │   │   ├── services.py
 │   │   └── views.py
 │   └── manage.py
 │
-│
-├── Saudi_IBD_Synthetic.xlsx     # Synthetic prototype dataset
-├── IBD_Risk_Model.ipynb         # Model walkthrough
-├── features.py                  # Feature governance / encoding
-├── train.py                     # Model training and selection
-├── predict.py                   # Prediction interface
-├── explain.py                   # SHAP explainability
+├── Saudi_IBD_Synthetic.xlsx
+├── IBD_Risk_Model.ipynb
+├── features.py
+├── train.py
+├── predict.py
+├── explain.py
 ├── example_patient.json
 ├── requirements.txt
 ├── .env.example
 └── README.md
 
-Local Setup
+Run Locally
 
-Prerequisites
-
-Python 3.11
-
-Git
-
-Internet connection for first-time dependency and embedding-model downloads
-
-Saudi_IBD_Synthetic.xlsx in the project root
-
-1. Clone the Repository
+<details open>
+<summary><b>1. Clone and install</b></summary>
 
 git clone https://github.com/ghaida-alsalamah/IBD.git
 cd IBD
-
-2. Create a Virtual Environment
 
 python -m venv .venv
 
@@ -824,39 +767,31 @@ macOS / Linux
 
 source .venv/bin/activate
 
-3. Install Dependencies
-
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 
-4. Prepare the Django Database
+</details>
+
+<details open>
+<summary><b>2. Prepare Django</b></summary>
 
 cd webapp
 python manage.py migrate
-
-5. Load the Synthetic Patient Dataset
-
 python manage.py load_patients --demo-user --password nurse-demo26
 
-This loads the 2,500 synthetic patient records and creates a local demo nurse account.
+</details>
 
-6. Build the Research Index
+<details>
+<summary><b>3. Build the Evidence Index</b></summary>
 
 python manage.py build_index
 
-This:
+This extracts the research papers, creates passages, builds BGE embeddings, constructs the BM25 index and saves the hybrid retrieval index.
 
-extracts the research PDFs;
+</details>
 
-creates overlapping passages;
-
-generates BGE embeddings;
-
-builds the BM25 index;
-
-saves the local hybrid retrieval index.
-
-7. Run the Application
+<details open>
+<summary><b>4. Start the application</b></summary>
 
 python manage.py runserver
 
@@ -864,131 +799,97 @@ Open:
 
 http://127.0.0.1:8000/
 
-Local seeded demo account:
+Demo login:
 
 Username: nurse
 Password: nurse-demo26
 
-For any public deployment, use deployment-specific credentials rather than reusing the local demo password.
+</details>
 
-Optional Claude Integration
+Optional Claude Configuration
 
-The application does not require Claude for risk prediction.
+Claude is not required for risk prediction.
 
-Claude is used only for evidence-grounded research summaries.
-
-Copy the example environment file:
-
-Windows
-
-Copy-Item .env.example .env
-
-macOS / Linux
-
-cp .env.example .env
-
-Add:
+It is used only for grounded evidence summaries.
 
 ANTHROPIC_API_KEY=your_key_here
 
-Without this key, the system automatically uses retrieval-only evidence mode.
+Without this key, the application automatically uses retrieval-only evidence mode.
 
 Never commit .env or API keys to GitHub.
 
-Running the ML Pipeline
+Testing & Validation
 
-To retrain and compare models:
+Validation
 
-python train.py
+Result
 
-Training outputs are written to artifacts/, including:
+Django tests
 
-selected model bundle;
+35 passing
 
-model report;
+Expanded layout checks
 
-ROC / PR plots;
+56
 
-calibration plot;
+Collapsed layout checks
 
-SHAP summary.
+39
 
-A single prediction can also be run from the command line:
+Long-page scroll checks
 
-python predict.py --json example_patient.json
+48
 
-Testing
+PDF output
 
-Run the Django test suite:
+Reviewed
+
+Run tests:
 
 cd webapp
 python manage.py test clinic
 
-Current UI / application validation includes:
-
-35 passing Django tests
-
-56 expanded-layout checks
-
-39 collapsed-layout checks
-
-48 long-page scroll checks
-
-PDF output review
-
-Render Deployment
-
-IBD Care is deployed on Render.
-
-Once deployment is live, replace the placeholder below with the final URL:
-
-[Open Live Demo](https://ibd-care-demo.onrender.com)
-
-Recommended production considerations:
-
-do not use Django runserver as the production server;
-
-configure production-safe Django settings and allowed hosts;
-
-store secrets as Render environment variables;
-
-keep ANTHROPIC_API_KEY outside the repository;
-
-run database migrations during deployment;
-
-ensure static files are served correctly;
-
-remember that free-tier local filesystems may be ephemeral;
-
-use persistent storage / a production database before any real clinical deployment.
+Deployment
 
 
+
+Live URL:
+https://ibd-care-demo.onrender.com
+
+Demo credentials
+
+Username: nurse
+Password: nurse-demo26
 
 Responsible AI & Clinical Safety
 
-IBD Care is intentionally presented as clinical decision support, not an autonomous diagnostic system.
+<details>
+<summary><b>Current Prototype Limitations</b></summary>
 
-Current prototype limitations
+<br>
 
-The patient dataset is synthetic.
+Patient data are synthetic.
 
 Model performance is not clinical validation.
 
-SHAP explanations describe the model, not biological causality.
+SHAP explanations describe model behavior, not biological causality.
 
-The research corpus is curated and is not exhaustive.
+The research corpus is curated but not exhaustive.
 
-Literature retrieval can miss relevant evidence.
+Retrieval can miss relevant evidence.
 
-Generated summaries depend on retrieved passages and should be reviewed.
+Generated evidence summaries require human review.
 
-No result should be used independently for diagnosis or treatment.
+The system must not independently guide diagnosis or treatment.
 
-Before real-world clinical use
+</details>
 
-The system would require, at minimum:
+<details>
+<summary><b>Requirements Before Real Clinical Use</b></summary>
 
-validation on representative real-world Saudi patient data;
+<br>
+
+validation on representative real Saudi patient data;
 
 prospective clinical evaluation;
 
@@ -1000,42 +901,71 @@ bias and subgroup evaluation;
 
 calibration and drift monitoring;
 
-integration with approved clinical workflows / EHR systems;
+approved EHR / clinical workflow integration;
 
-formal human-factors and nurse usability testing.
+formal nurse usability and human-factors testing.
+
+</details>
 
 Future Work
 
-Potential next steps include:
+Direction
 
-validation on a larger real Saudi cohort;
+Planned Improvement
 
-hospital / EHR integration;
+Clinical validation
 
-external and prospective validation;
+Validate on a larger real Saudi cohort
 
-expanded microbiome and biomarker evidence;
+Integration
 
-calibrated uncertainty communication;
+Connect with hospital / EHR systems
 
-longitudinal clinical monitoring;
+Monitoring
 
-production-grade authentication and audit logging;
+Add calibration and model-drift monitoring
 
-persistent production database;
+Evidence
 
-nurse usability studies;
+Expand microbiome and biomarker literature
 
-model monitoring and drift detection.
+Security
+
+Production authentication and audit logging
+
+Persistence
+
+Production-grade persistent database
+
+Usability
+
+Formal nurse usability studies
+
+Longitudinal care
+
+Expand clinical monitoring over time
 
 Hackathon Context
 
-Event: Nursing Innovation Hackathon 2026
-Hackathon ID: NH-74
-Track: Track 3 — AI-Driven Clinical Decision Support
-Project: Machine Learning-Based Prediction of Inflammatory Bowel Disease Risk Using Gut Dysbiosis Biomarkers in Saudi Youth
 
-The project explores how interpretable machine learning and evidence-grounded AI can be combined in a nurse-centered workflow for early IBD risk assessment.
+
+
+
+Event
+
+Nursing Innovation Hackathon 2026
+
+Hackathon ID
+
+NH-74
+
+Track
+
+Track 3 — AI-Driven Clinical Decision Support
+
+Project
+
+Machine Learning-Based Prediction of Inflammatory Bowel Disease Risk Using Gut Dysbiosis Biomarkers in Saudi Youth
 
 <div align="center">
 
@@ -1043,6 +973,6 @@ IBD Care
 
 Information · Understanding · Care
 
-Built as a clinical decision-support prototype for the Nursing Innovation Hackathon 2026.
+
 
 </div>

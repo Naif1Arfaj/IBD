@@ -1,0 +1,39 @@
+{% extends "clinic/base.html" %}{% load clinic_tags %}
+{% block title %}Evidence Library{% endblock %}
+{% block content %}
+<div class="page-head"><h2>Evidence Library</h2><span class="spacer"></span>
+  {% if llm_on %}<span class="chip low">Claude answers with citations</span>{% else %}<span class="chip grey">Offline: passage retrieval only</span>{% endif %}</div>
+
+{% if index_missing %}
+<div class="alert error">The research index has not been built yet. Run <code>python manage.py build_index</code>.</div>
+{% else %}
+<div class="card" style="margin-bottom:16px">
+  <h3>{% icon "search" %} Ask the research library</h3>
+  <form class="ask" method="get" data-busy="Searching…">
+    <input name="q" value="{{ q }}" placeholder="e.g. Does antibiotic exposure in childhood increase IBD risk?" aria-label="Research question">
+    <button class="btn" type="submit"><span class="spinner"></span><span class="lbl">Ask</span></button>
+  </form>
+  {% if answer %}
+    {% if answer.notice %}<div class="alert info" style="margin-top:12px">{{ answer.notice }}</div>{% endif %}
+    <div style="margin-top:14px">
+    {% if answer.text %}
+      <div class="prose">{{ answer.text|cite:"qref" }}</div>
+      <ol class="refs">{% for ref in answer.references %}<li id="qref-{{ ref.n }}"><b>[{{ ref.n }}]</b> <a href="{% paper_url ref %}" target="_blank">{{ ref.label }}</a>
+        {% for qt in ref.quotes|slice:":1" %}<span class="q">“{{ qt }}”</span>{% endfor %}</li>{% endfor %}</ol>
+    {% else %}
+      {% for ref in answer.references %}<div class="passage">“{{ ref.quotes.0 }}”<br><a class="small" href="{% paper_url ref %}" target="_blank">— {{ ref.label }}</a></div>{% endfor %}
+    {% endif %}
+    </div>
+  {% endif %}
+  <div class="disclaimer">{% icon "alert" 16 %}<span>Answers are drawn only from the {{ papers|length }} indexed papers and support, not replace, clinical judgment.</span></div>
+</div>
+
+<div class="card">
+  <h3>{% icon "book" %} Indexed papers ({{ papers|length }})</h3>
+  <table class="tbl papers"><tr><th>Year</th><th>Title</th><th>Pages</th><th>DOI</th></tr>
+    {% for p in papers %}<tr><td>{{ p.year|default:"—" }}</td><td><a href="{% url 'paper' p.file %}" target="_blank">{{ p.title }}</a></td>
+      <td class="muted">{{ p.n_pages }}</td><td class="small muted">{% if p.doi %}<a href="https://doi.org/{{ p.doi }}" target="_blank" rel="noopener">{{ p.doi }}</a>{% endif %}</td></tr>{% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}

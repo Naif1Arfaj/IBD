@@ -1,0 +1,17 @@
+{% extends "clinic/base.html" %}{% load clinic_tags humanize %}
+{% block title %}Risk Assessments{% endblock %}
+{% block content %}
+<div class="page-head"><h2>Risk Assessments</h2></div>
+<div class="card">
+  {% if page.object_list %}
+  <table class="tbl"><tr><th>Patient</th><th>Prediction</th><th>Probability</th><th>Tier</th><th>Model</th><th>When</th></tr>
+    {% for a in page.object_list %}<tr>
+      <td><a href="{% url 'result' a.pk %}">{{ a.patient.patient_code }}</a></td><td>{{ a.prediction }}</td><td>{{ a.probability|pct:1 }}</td>
+      <td><span class="chip {{ a.tier|tier_class }}">{{ a.tier }}</span></td><td class="muted small">{{ a.model_name }}</td><td class="muted">{{ a.created|naturaltime }}</td></tr>{% endfor %}
+  </table>
+  <div class="pager">{% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">‹ Prev</a>{% else %}<span></span>{% endif %}
+    <span class="muted">Page {{ page.number }} / {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a href="?page={{ page.next_page_number }}">Next ›</a>{% else %}<span></span>{% endif %}</div>
+  {% else %}<p class="muted">No assessments yet.</p>{% endif %}
+</div>
+{% endblock %}

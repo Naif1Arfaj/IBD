@@ -1,0 +1,19 @@
+{% extends "clinic/base.html" %}{% load clinic_tags humanize %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="page-head"><h2>Reports</h2></div>
+<div class="card">
+  {% if page.object_list %}
+  <table class="tbl"><tr><th>Patient</th><th>Risk</th><th>Evidence</th><th>Created</th><th></th></tr>
+    {% for r in page.object_list %}<tr>
+      <td>{{ r.assessment.patient.patient_code }}</td>
+      <td><span class="chip {{ r.assessment.tier|tier_class }}">{{ r.assessment.tier }} · {{ r.assessment.probability|pct }}</span></td>
+      <td>{% if r.llm_used %}<span class="chip teal">Claude + library</span>{% else %}<span class="chip grey">Library passages</span>{% endif %}</td>
+      <td class="muted">{{ r.created|naturaltime }}</td><td><a href="{% url 'report' r.pk %}">Open {% icon "chevron" 14 %}</a></td></tr>{% endfor %}
+  </table>
+  <div class="pager">{% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">‹ Prev</a>{% else %}<span></span>{% endif %}
+    <span class="muted">Page {{ page.number }} / {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a href="?page={{ page.next_page_number }}">Next ›</a>{% else %}<span></span>{% endif %}</div>
+  {% else %}<p class="muted">No reports yet. Run an assessment and press <b>Generate report</b>.</p>{% endif %}
+</div>
+{% endblock %}

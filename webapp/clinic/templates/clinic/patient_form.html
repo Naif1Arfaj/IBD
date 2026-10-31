@@ -1,0 +1,28 @@
+{% extends "clinic/base.html" %}{% load clinic_tags %}
+{% block title %}Add patient{% endblock %}
+{% block content %}
+<div class="page-head"><a href="{% url 'patients' %}" style="color:inherit">{% icon "back" 20 %}</a><h2>Add patient</h2>
+  <span class="spacer"></span><span class="muted small">Values are pre-filled with dataset medians — replace them with the patient's data.</span></div>
+<form method="post">{% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert error">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+  <div class="card" style="margin-bottom:16px;max-width:420px">
+    <div class="field"><label for="{{ form.patient_code.id_for_label }}">{{ form.patient_code.label }}</label>{{ form.patient_code }}
+      <span class="help">{{ form.patient_code.help_text }}</span>{% for e in form.patient_code.errors %}<span class="err">{{ e }}</span>{% endfor %}</div>
+  </div>
+  <div class="grid form-grid">
+    {% for group, fields in form.grouped %}
+    <div class="card"><h3>{% icon group|group_icon %} {{ group }}</h3>
+      <div class="fields-2">
+      {% for f in fields %}
+        <div class="field"><label for="{{ f.id_for_label }}">{{ f.label }}</label>{{ f }}
+          {% if f.help_text %}<span class="help">{{ f.help_text }}</span>{% endif %}
+          {% for e in f.errors %}<span class="err">{{ e }}</span>{% endfor %}</div>
+      {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div style="margin-top:16px;display:flex;gap:10px"><button class="btn" type="submit">{% icon "plus" 16 %} Save patient</button>
+    <a class="btn ghost" href="{% url 'patients' %}">Cancel</a></div>
+</form>
+{% endblock %}

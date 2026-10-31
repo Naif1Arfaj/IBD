@@ -1,0 +1,44 @@
+{% extends "clinic/base.html" %}{% load clinic_tags humanize %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head"><h2>Dashboard</h2><span class="spacer"></span>
+  <a class="btn ghost" href="{% url 'patient_new' %}">{% icon "plus" 16 %} Add patient</a>
+  <a class="btn" href="{% url 'patients' %}">{% icon "users" 16 %} Open patients</a>
+</div>
+
+<div class="grid stats">
+  <div class="card stat"><div class="num">{{ n_patients|intcomma }}</div><div class="lbl">Patients ({{ n_manual }} entered manually)</div></div>
+  <div class="card stat"><div class="num">{{ n_assessments }}</div><div class="lbl">Risk assessments run</div></div>
+  <div class="card stat"><div class="num">{{ n_reports }}</div><div class="lbl">Reports generated</div></div>
+  <div class="card stat"><div class="num" style="font-size:18px;padding-top:10px">{% if llm_on %}<span class="chip low">Claude connected</span>{% else %}<span class="chip grey">Offline evidence mode</span>{% endif %}</div><div class="lbl">Research assistant</div></div>
+</div>
+
+<div class="grid" style="grid-template-columns:1.4fr 1fr;margin-top:16px">
+  <div class="card">
+    <h3>{% icon "trend" %} Recent assessments</h3>
+    {% if recent %}
+    <table class="tbl"><tr><th>Patient</th><th>Prediction</th><th>Probability</th><th>Tier</th><th>When</th></tr>
+      {% for a in recent %}<tr>
+        <td><a href="{% url 'result' a.pk %}">{{ a.patient.patient_code }}</a></td><td>{{ a.prediction }}</td>
+        <td>{{ a.probability|pct:1 }}</td><td><span class="chip {{ a.tier|tier_class }}">{{ a.tier }}</span></td>
+        <td class="muted">{{ a.created|naturaltime }}</td></tr>{% endfor %}
+    </table>
+    {% else %}<p class="muted">No assessments yet. Open a patient and press <b>Calculate IBD Risk</b>.</p>{% endif %}
+    {% with t=tiers %}{% if n_assessments %}
+    <div class="tierbar">{% for name, n in tiers %}<span style="width:{% widthratio n n_assessments 100 %}%;background:var(--{% if name == 'High' %}high{% elif name == 'Moderate' %}mod{% else %}low{% endif %})"></span>{% endfor %}</div>
+    <div class="small muted">{% for name, n in tiers %}<span class="chip {{ name|tier_class }}">{{ name }} {{ n }}</span> {% endfor %}</div>
+    {% endif %}{% endwith %}
+  </div>
+  <div class="card">
+    <h3>{% icon "shield" %} Model performance</h3>
+    <p class="small muted" style="margin-top:-8px">{{ card.name }} · {{ card.n_features }} inputs · held-out test set (500 synthetic patients)</p>
+    <div class="grid metrics">
+      <div class="metric"><b>{{ card.precision|pct }}</b>Precision</div>
+      <div class="metric"><b>{{ card.recall|pct }}</b>Recall</div>
+      <div class="metric"><b>{{ card.accuracy|pct }}</b>Accuracy</div>
+      <div class="metric"><b>{{ card.auc|floatformat:3 }}</b>ROC-AUC</div>
+    </div>
+    <div class="disclaimer">{% icon "alert" 16 %}<span>Metrics show how well the model recovers the synthetic generation formula — not clinical accuracy.</span></div>
+  </div>
+</div>
+{% endblock %}

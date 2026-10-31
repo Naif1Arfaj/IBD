@@ -1,0 +1,90 @@
+{% extends "clinic/base.html" %}{% load clinic_tags %}
+{% block title %}Result · {{ patient.patient_code }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <a href="{% url 'patient' patient.pk %}" style="color:inherit">{% icon "back" 20 %}</a><h2>Patient Result</h2><span class="spacer"></span>
+  {% for rep in reports %}{% if forloop.first %}<a class="btn ghost" href="{% url 'report' rep.pk %}">{% icon "file" 16 %} Open latest report</a>{% endif %}{% endfor %}
+  <form method="post" action="{% url 'report_create' a.pk %}" data-busy="Generating report…">{% csrf_token %}
+    <button class="btn" type="submit"><span class="spinner"></span>{% icon "file" 16 %} <span class="lbl">Generate report</span></button>
+  </form>
+</div>
+
+<div class="card" style="margin-bottom:16px">
+  <div class="profile-head" style="margin:0">
+    <div class="pitem" style="border:0;padding:0"><div class="avatar" style="width:52px;height:52px">{% icon "user" 24 %}</div>
+      <div><b style="font-size:17px">{{ patient.patient_code }}</b><small>Age {{ a.inputs.age_years }} | {{ a.inputs.sex }} | BMI {{ a.inputs.BMI_kg_m2 }} kg/m²</small></div></div>
+    <span class="demo-badge sm">DEMO — SYNTHETIC DATA</span>
+    {% if patient.synthetic_label is not None %}<span class="chip grey" title="Dataset label, shown for demo validation only">Synthetic ground truth: {% if patient.synthetic_label %}IBD{% else %}No IBD{% endif %}</span>{% endif %}
+    <div class="facts muted small">Assessment: {{ a.created|date:"j M Y" }} &nbsp; {{ a.created|time:"H:i" }}</div>
+  </div>
+</div>
+
+<div class="grid result-grid">
+  <div class="grid">
+    <div class="card risk-card {{ a.tier|tier_class }}">
+      <div class="risk-top"><div class="badge">{% icon "alert" 20 %}</div><div><b>IBD RISK SCORE</b><span class="muted small">AI-estimated risk</span></div></div>
+      <div class="risk-main">
+        <div><div class="tier">{{ a.tier }} Risk</div><div class="small">Prediction: <b>{{ a.prediction }}</b> · threshold {{ a.threshold|pct }}</div></div>
+        <div class="ring-wrap" style="width:110px;height:110px">
+          <svg width="110" height="110" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="12"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--{% if a.tier == 'High' %}high{% elif a.tier == 'Moderate' %}mod{% else %}low{% endif %})" stroke-width="12" stroke-linecap="round" stroke-dasharray="{% widthratio ring 100 314 %} 314"/></svg>
+          <div class="ring-label"><b style="font-size:22px">{{ ring }}%</b></div>
+        </div>
+      </div>
+      <p class="small" style="margin:0">AI-supported risk stratification — clinical assessment and physician evaluation remain required.</p>
+    </div>
+    <div class="card next-step">
+      <h3>{% icon "clipboard" %} Suggested Clinical Next Step</h3>
+      <p>{{ next_step }}</p>
+      <p class="small" style="color:var(--teal-700);margin:0">AI supports — it does not replace — clinical judgment.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>{% icon "shield" %} Key Contributing Factors</h3>
+    <div class="tabs" role="tablist">
+      <button class="on" data-tab="groups" type="button">By group</button>
+      <button data-tab="vars" type="button">By variable</button>
+    </div>
+    <div data-pane="groups">
+      {% for g in a.group_factors %}{% if forloop.counter <= 7 %}
+      <div class="factor"><div class="fi">{% icon g.group|group_icon 18 %}</div>
+        <div><div class="name">{{ g.label }} <small>· {{ g.direction }} risk</small></div><div class="track"><div class="fill {{ g.direction }}" style="width:{{ g.pct }}%"></div></div></div>
+        <div class="p">{{ g.pct }}%</div></div>
+      {% endif %}{% endfor %}
+    </div>
+    <div data-pane="vars" hidden>
+      {% for f in a.factors %}{% if forloop.counter <= 8 %}
+      <div class="factor"><div class="fi">{% icon "activity" 18 %}</div>
+        <div><div class="name">{{ f.label }} = <b>{{ f.value }}</b> <small>· {{ f.direction }} risk</small></div><div class="track"><div class="fill {{ f.direction }}" style="width:{{ f.pct }}%"></div></div></div>
+        <div class="p">{{ f.pct }}%</div></div>
+      {% endif %}{% endfor %}
+    </div>
+    <p class="small muted" style="margin:8px 0 0">Bar length = relative SHAP contribution (largest = 100%). <span style="color:var(--raise)">■</span> raises risk <span style="color:var(--lower)">■</span> lowers risk.</p>
+  </div>
+
+  <div class="card">
+    <h3>{% icon "activity" %} Patient Data Summary</h3>
+    {% for title, text, ic in summary %}
+    <a class="sumrow" href="{% url 'patient' patient.pk %}" style="color:inherit;text-decoration:none">
+      {% icon ic 20 %}<div><b>{{ title }}</b><small>{{ text }}</small></div>{% icon "chevron" 16 "muted" %}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h3>Nursing Role in the AI-Supported Workflow</h3>
+  <div class="workflow">
+    {% for t, s in workflow %}<div class="wstep"><span class="n">{{ forloop.counter }}</span><div><b>{{ t }}</b><small>({{ s }})</small></div></div>{% if not forloop.last %}{% icon "chevron" 18 %}{% endif %}{% endfor %}
+  </div>
+</div>
+<div class="disclaimer">{% icon "alert" 16 %}<span>{{ disclaimer }}</span></div>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x === b));
+    document.querySelectorAll("[data-pane]").forEach(p => p.hidden = p.dataset.pane !== b.dataset.tab);
+  }));
+</script>
+{% endblock %}

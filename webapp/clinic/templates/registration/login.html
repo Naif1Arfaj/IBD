@@ -1,0 +1,27 @@
+{% load static clinic_tags %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · IBD Risk Assessment</title>
+  <link rel="stylesheet" href="{% static 'clinic/app.css' %}">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="card login">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;color:var(--teal-700)">
+      {% icon "leaf" 30 %}<div><b>{{ HOSPITAL_NAME }}</b><div class="muted small">{{ HOSPITAL_SUBTITLE }}</div></div>
+    </div>
+    <h2>IBD Risk Assessment</h2>
+    <p class="muted" style="margin-top:0">Sign in to the clinical decision-support demo.</p>
+    {% if form.errors %}<div class="alert error">Incorrect username or password.</div>{% endif %}
+    <form method="post">{% csrf_token %}
+      <div class="field"><label for="id_username">Username</label>{{ form.username }}</div>
+      <div class="field"><label for="id_password">Password</label>{{ form.password }}</div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn lg" type="submit">Sign in</button>
+    </form>
+    <p class="small muted" style="margin-top:14px"><span class="demo-badge sm">DEMO — SYNTHETIC DATA</span> No real patient data.</p>
+  </div>
+</div>
+</body>
+</html>

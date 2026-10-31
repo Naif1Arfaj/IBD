@@ -1,0 +1,57 @@
+{% load static clinic_tags %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}IBD Risk Assessment{% endblock %} · {{ HOSPITAL_NAME }}</title>
+  <link rel="stylesheet" href="{% static 'clinic/app.css' %}">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-logo">{% icon "leaf" 22 %}</div>
+    <div class="brand-name">{{ HOSPITAL_NAME }}<small>{{ HOSPITAL_SUBTITLE }}</small></div>
+  </div>
+  <div class="app-title">
+    <h1>IBD Risk Assessment</h1>
+    <p>AI-Powered Decision Support for Early Identification</p>
+  </div>
+  <span class="demo-badge">DEMO — SYNTHETIC DATA</span>
+  <div class="user-chip">
+    <div class="avatar">{% icon "user" 20 %}</div>
+    <div>{{ user.get_full_name|default:user.username|title }}<small>Clinical Care Team</small></div>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+      <button class="btn ghost" style="padding:6px 8px;background:transparent;border-color:rgba(255,255,255,.3);color:#fff" title="Sign out">{% icon "logout" 16 %}</button>
+    </form>
+  </div>
+</header>
+<div class="shell">
+  <nav class="sidebar">
+    <div class="nav">
+      <a href="{% url 'dashboard' %}" class="{% if nav == 'dashboard' %}active{% endif %}">{% icon "home" %} Dashboard</a>
+      <a href="{% url 'patients' %}" class="{% if nav == 'patients' %}active{% endif %}">{% icon "users" %} Patients</a>
+      <a href="{% url 'assessments' %}" class="{% if nav == 'assessments' %}active{% endif %}">{% icon "trend" %} Risk Assessments</a>
+      <a href="{% url 'evidence' %}" class="{% if nav == 'evidence' %}active{% endif %}">{% icon "book" %} Evidence Library</a>
+      <a href="{% url 'reports' %}" class="{% if nav == 'reports' %}active{% endif %}">{% icon "file" %} Reports</a>
+      <a href="{% url 'settings' %}" class="{% if nav == 'settings' %}active{% endif %}">{% icon "settings" %} Settings</a>
+    </div>
+    <div class="sidebar-foot">Better Care<br>Through Innovation
+      <svg width="150" height="16" viewBox="0 0 150 16"><path d="M2 14 C 50 14, 100 12, 148 2" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+    </div>
+  </nav>
+  <main class="main">
+    {% for m in messages %}<div class="alert {{ m.tags }}">{{ m }}</div>{% endfor %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<script>
+  // Disable submit buttons while long actions (assessment, report generation) run.
+  document.querySelectorAll("form[data-busy]").forEach(f => f.addEventListener("submit", () => {
+    const b = f.querySelector("button[type=submit]"); if (!b) return;
+    b.disabled = true; b.classList.add("loading");
+    const t = b.querySelector(".lbl"); if (t) t.textContent = f.dataset.busy;
+  }));
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,32 @@
+{% extends "clinic/base.html" %}{% load clinic_tags %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<div class="page-head"><h2>Settings</h2></div>
+<div class="grid" style="grid-template-columns:1fr 1fr">
+  <div class="card">
+    <h3>{% icon "brain" %} Research assistant (RAG)</h3>
+    <table class="tbl">
+      <tr><td>Claude API</td><td>{% if llm_on %}<span class="chip low">Key detected</span>{% else %}<span class="chip grey">No key — offline mode</span>{% endif %}</td></tr>
+      <tr><td>Model</td><td><code>{{ model }}</code> · adaptive thinking · refusal fallback enabled</td></tr>
+      {% if stats %}
+      <tr><td>Indexed papers</td><td>{{ stats.documents }}</td></tr>
+      <tr><td>Searchable passages</td><td>{{ stats.chunks }}</td></tr>
+      <tr><td>Unreadable PDFs</td><td>{{ stats.failed|length }}</td></tr>
+      {% else %}<tr><td>Index</td><td><span class="chip high">Not built</span> run <code>manage.py build_index</code></td></tr>{% endif %}
+      <tr><td>Retrieval</td><td>Hybrid: BGE-small embeddings + BM25, reciprocal-rank fusion</td></tr>
+    </table>
+    {% if not llm_on %}<div class="alert info" style="margin-top:12px">To enable written, cited evidence summaries, add <code>ANTHROPIC_API_KEY=…</code> to <code>ibd_model/.env</code> and restart the server.</div>{% endif %}
+  </div>
+  <div class="card">
+    <h3>{% icon "shield" %} Model card</h3>
+    <table class="tbl">
+      <tr><td>Model</td><td>{{ card.name }}</td></tr>
+      <tr><td>Inputs</td><td>{{ card.n_features }} variables in {{ groups|length }} groups</td></tr>
+      <tr><td>Decision threshold</td><td>{{ card.threshold|pct:1 }}</td></tr>
+      <tr><td>Risk tiers</td><td>Low &lt; {{ card.tiers.Low|pct }} ≤ Moderate &lt; {{ card.tiers.Moderate|pct }} ≤ High</td></tr>
+      <tr><td>Test precision / recall / accuracy</td><td>{{ card.precision|pct }} / {{ card.recall|pct }} / {{ card.accuracy|pct }}</td></tr>
+    </table>
+    <div class="disclaimer">{% icon "alert" 16 %}<span>{{ card.disclaimer }}</span></div>
+  </div>
+</div>
+{% endblock %}

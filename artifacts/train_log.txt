@@ -1,0 +1,13 @@
+Data: 2500 rows, 61 features, prevalence 0.247
+  Logistic Regression (L2)           PR-AUC 0.929  ROC-AUC 0.973  P 0.870 R 0.856 Acc 0.933  (2s)
+  Sparse Logistic Regression (L1)    PR-AUC 0.935  ROC-AUC 0.975  P 0.867 R 0.860 Acc 0.933  (3s)
+  Logistic Regression + splines      PR-AUC 0.924  ROC-AUC 0.972  P 0.827 R 0.858 Acc 0.920  (3s)
+  Random Forest                      PR-AUC 0.893  ROC-AUC 0.960  P 0.751 R 0.862 Acc 0.895  (72s)
+  Gradient Boosting (HistGB)         PR-AUC 0.903  ROC-AUC 0.961  P 0.756 R 0.864 Acc 0.897  (247s)
+  Ensemble (Sparse Logistic Regression + HistGB) PR-AUC 0.929  ROC-AUC 0.973  P 0.837 R 0.854 Acc 0.923
+
+Chosen: Sparse Logistic Regression (L1) (highest out-of-fold PR-AUC)
+Threshold (max F1 with recall >= 0.85): 0.454
+TEST  ROC-AUC 0.972 [0.959-0.983]  PR-AUC 0.925  Precision 0.800  Recall 0.806  Accuracy 0.902  F1 0.803
+
+Saved to /Users/naifalarfaj/Desktop/Project 1/ibd_model/artifacts  (331s)

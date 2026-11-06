@@ -31,4 +31,4 @@ class HostedDemoBootstrapTests(TestCase):
         self.assertFalse(user.is_staff)
         self.assertFalse(user.is_superuser)
         self.assertNotIn(password, output.getvalue())
-        self.assertEqual(initialise.call_count, 4)
+        self.assertEqual(initialise.call_count, 6)

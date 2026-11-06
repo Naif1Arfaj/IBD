@@ -28,7 +28,8 @@ https://dashboard.render.com/select-repo?type=blueprint
   and availability. There is no promise of uninterrupted uptime.
 - SQLite is ephemeral: new patients, assessments, reports and sessions can be
   lost whenever the server restarts, sleeps or redeploys. Startup restores
-  synthetic patients and the nurse login, not assessment history.
+  synthetic patients, the three demo scenarios and the nurse login, not
+  assessments or alerts added by visitors.
 - No persistent disk or paid database is provisioned.
 - Optional paid AI summaries are disabled. Existing passage retrieval and
   citations still work without an API key.

@@ -1,0 +1,322 @@
+{
+ "source": "IBDMDB HMP2 metagenomics (Lloyd-Price et al., Nature 2019)",
+ "group_labels": {
+  "nonIBD": "Non-IBD controls",
+  "CD": "Crohn's disease",
+  "UC": "Ulcerative colitis"
+ },
+ "percentiles": [
+  5,
+  25,
+  50,
+  75,
+  95
+ ],
+ "cohort": {
+  "samples": 1632,
+  "people": {
+   "nonIBD": 27,
+   "CD": 65,
+   "UC": 38
+  },
+  "samples_without_species_data": 6,
+  "abundance_scale_check": 1.0,
+  "age_range": [
+   6.0,
+   76.0
+  ],
+  "samples_without_ratio": 19
+ },
+ "butyrate_genera": [
+  "Faecalibacterium",
+  "Roseburia",
+  "Eubacterium",
+  "Coprococcus",
+  "Butyricicoccus",
+  "Anaerostipes",
+  "Subdoligranulum"
+ ],
+ "features": {
+  "alpha_diversity_Shannon": {
+   "unit": "index",
+   "groups": {
+    "nonIBD": {
+     "people": 27,
+     "p5": 1.931,
+     "p25": 2.278,
+     "p50": 2.654,
+     "p75": 2.81,
+     "p95": 2.936
+    },
+    "CD": {
+     "people": 65,
+     "p5": 1.577,
+     "p25": 2.021,
+     "p50": 2.29,
+     "p75": 2.544,
+     "p95": 2.811
+    },
+    "UC": {
+     "people": 38,
+     "p5": 1.679,
+     "p25": 2.093,
+     "p50": 2.431,
+     "p75": 2.645,
+     "p95": 3.076
+    }
+   },
+   "synthetic_median": 3.398,
+   "synthetic_outside_pct": 68.2
+  },
+  "butyrate_producer_abundance_pct": {
+   "unit": "%",
+   "groups": {
+    "nonIBD": {
+     "people": 27,
+     "p5": 8.78,
+     "p25": 16.296,
+     "p50": 25.387,
+     "p75": 33.069,
+     "p95": 52.136
+    },
+    "CD": {
+     "people": 65,
+     "p5": 1.027,
+     "p25": 8.031,
+     "p50": 15.412,
+     "p75": 25.953,
+     "p95": 44.053
+    },
+    "UC": {
+     "people": 38,
+     "p5": 8.104,
+     "p25": 13.94,
+     "p50": 20.597,
+     "p75": 29.841,
+     "p95": 46.499
+    }
+   },
+   "synthetic_median": 11.51,
+   "synthetic_outside_pct": 0.8
+  },
+  "Faecalibacterium_abundance_pct": {
+   "unit": "%",
+   "groups": {
+    "nonIBD": {
+     "people": 27,
+     "p5": 0.402,
+     "p25": 6.189,
+     "p50": 8.481,
+     "p75": 14.499,
+     "p95": 26.847
+    },
+    "CD": {
+     "people": 65,
+     "p5": 0.0,
+     "p25": 1.464,
+     "p50": 6.823,
+     "p75": 11.403,
+     "p95": 20.392
+    },
+    "UC": {
+     "people": 38,
+     "p5": 2.497,
+     "p25": 4.865,
+     "p50": 8.724,
+     "p75": 13.852,
+     "p95": 23.164
+    }
+   },
+   "synthetic_median": 4.63,
+   "synthetic_outside_pct": 0.0
+  },
+  "Roseburia_abundance_pct": {
+   "unit": "%",
+   "groups": {
+    "nonIBD": {
+     "people": 27,
+     "p5": 0.118,
+     "p25": 0.321,
+     "p50": 1.076,
+     "p75": 2.323,
+     "p95": 6.808
+    },
+    "CD": {
+     "people": 65,
+     "p5": 0.001,
+     "p25": 0.13,
+     "p50": 0.48,
+     "p75": 1.425,
+     "p95": 6.261
+    },
+    "UC": {
+     "people": 38,
+     "p5": 0.064,
+     "p25": 0.499,
+     "p50": 0.999,
+     "p75": 3.689,
+     "p95": 8.238
+    }
+   },
+   "synthetic_median": 2.88,
+   "synthetic_outside_pct": 0.0
+  },
+  "Bacteroides_abundance_pct": {
+   "unit": "%",
+   "groups": {
+    "nonIBD": {
+     "people": 27,
+     "p5": 12.116,
+     "p25": 23.75,
+     "p50": 40.193,
+     "p75": 53.506,
+     "p95": 68.081
+    },
+    "CD": {
+     "people": 65,
+     "p5": 0.002,
+     "p25": 29.87,
+     "p50": 47.525,
+     "p75": 60.899,
+     "p95": 71.907
+    },
+    "UC": {
+     "people": 38,
+     "p5": 9.617,
+     "p25": 26.73,
+     "p50": 44.087,
+     "p75": 57.751,
+     "p95": 74.616
+    }
+   },
+   "synthetic_median": 17.93,
+   "synthetic_outside_pct": 0.0
+  },
+  "Proteobacteria_abundance_pct": {
+   "unit": "%",
+   "groups": {
+    "nonIBD": {
+     "people": 27,
+     "p5": 0.221,
+     "p25": 0.646,
+     "p50": 1.576,
+     "p75": 2.623,
+     "p95": 5.712
+    },
+    "CD": {
+     "people": 65,
+     "p5": 0.137,
+     "p25": 0.666,
+     "p50": 1.578,
+     "p75": 4.195,
+     "p95": 19.888
+    },
+    "UC": {
+     "people": 38,
+     "p5": 0.192,
+     "p25": 0.578,
+     "p50": 1.497,
+     "p75": 2.595,
+     "p95": 4.437
+    }
+   },
+   "synthetic_median": 5.63,
+   "synthetic_outside_pct": 0.0
+  },
+  "Firmicutes_Bacteroidetes_ratio": {
+   "unit": "ratio",
+   "groups": {
+    "nonIBD": {
+     "people": 27,
+     "p5": 0.209,
+     "p25": 0.282,
+     "p50": 0.574,
+     "p75": 0.889,
+     "p95": 1.87
+    },
+    "CD": {
+     "people": 63,
+     "p5": 0.111,
+     "p25": 0.219,
+     "p50": 0.3,
+     "p75": 0.741,
+     "p95": 81.569
+    },
+    "UC": {
+     "people": 38,
+     "p5": 0.183,
+     "p25": 0.281,
+     "p50": 0.432,
+     "p75": 0.811,
+     "p95": 2.936
+    }
+   },
+   "synthetic_median": 1.589,
+   "synthetic_outside_pct": 0.0
+  }
+ },
+ "dysbiosis": {
+  "rows": 1595,
+  "matched_to_metadata": 1595,
+  "groups": {
+   "nonIBD": {
+    "samples": 426,
+    "people": 27,
+    "median_score": 0.726,
+    "flagged_pct": 10.1
+   },
+   "CD": {
+    "samples": 732,
+    "people": 65,
+    "median_score": 0.762,
+    "flagged_pct": 24.3
+   },
+   "UC": {
+    "samples": 437,
+    "people": 38,
+    "median_score": 0.745,
+    "flagged_pct": 11.7
+   }
+  }
+ },
+ "sources": [
+  {
+   "role": "Bacteria abundances for each stool sample (MetaPhlAn2, the published analysis version)",
+   "file": "taxonomic_profiles.tsv.gz",
+   "url": "https://g-227ca.190ebd.75bc.data.globus.org/ibdmdb/products/HMP2/MGX/2018-05-04/taxonomic_profiles.tsv.gz",
+   "sha256": "5728531a6a1236371be6795b1da84ff5f6dd029035179d24d3c3be72d814e72c"
+  },
+  {
+   "role": "Sample, person and diagnosis records",
+   "file": "hmp2_metadata_2018-08-20.csv",
+   "url": "https://g-227ca.190ebd.75bc.data.globus.org/ibdmdb/metadata/hmp2_metadata_2018-08-20.csv",
+   "sha256": "656b7bd97660ddb875548805e30bede31f2d1208293f7170d2d5755e33862ec9"
+  },
+  {
+   "role": "Dysbiosis score per sample; reported as context, never compared with a patient",
+   "file": "dysbiosis_scores.tsv",
+   "url": "https://forum.biobakery.org/uploads/short-url/umwfR0kDJ6s5RXHwtIMgLaOEoOI.tsv",
+   "sha256": "eb4d55c9bdfece1cd53178fb961cd417063802225dd712af4666abb462372bc7"
+  },
+  {
+   "role": "Processing log; recorded as a source and not parsed",
+   "file": "anadama_run.log.gz",
+   "url": "https://g-227ca.190ebd.75bc.data.globus.org/ibdmdb/metadata/anadama_run.log.gz",
+   "sha256": "cbe91349eca3b0b049065d5bcccca3be7ebcfcae94c2be64265de3a674a51ffa"
+  }
+ ],
+ "signal": {
+  "samples": 1632,
+  "ibd_sample_share": 0.738,
+  "logistic_auc": 0.65,
+  "forest_auc": 0.509,
+  "careless_species_auc": 0.984,
+  "grouped_species_auc": 0.619,
+  "age_15_30_nonibd_people": 8,
+  "age_15_30_auc": 0.716,
+  "next_visit_samples": 795,
+  "next_visit_people": 79,
+  "next_visit_events": 86,
+  "next_visit_auc": 0.485
+ }
+}

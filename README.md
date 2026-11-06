@@ -510,6 +510,26 @@ Centralizes:
 
 ---
 
+## Care Continuity (draft)
+
+> **Draft rules, pending clinical review.** These features use transparent rules, not trained predictions. Their sources were checked from abstracts, guideline summaries and local pathways; confirm them against full texts and Saudi pathways before any use.
+
+| Feature | What it does | Limits |
+|---|---|---|
+| **Reassessment** | Update a patient's values, record a medication and start date, reassess, and compare measurements with those before the medication | The risk model was not validated for treatment response, so results show what changed, not whether a medication worked |
+| **Monitoring & alerts** | Follow at-risk or diagnosed patients, flag rising risk, calprotectin or CRP and new red flags, and list overdue reviews | In-app only, and only when an assessment is saved. "Flare" applies only to diagnosed patients |
+| **Referral prioritization** | Suggest an urgency, a department, conditions that can mimic IBD, and missing tests from recorded symptoms and tests | No probabilities for other conditions. The clinician records the final decision |
+
+| **Real microbiome ranges** | Show each of the 7 microbiome inputs against real IBDMDB groups (non-IBD, Crohn's, ulcerative colitis) on the patient and result pages | For context only: not clinical normal ranges, and they change no estimate. Only 27 non-IBD people. 68% of synthetic patients fall outside all three real Shannon ranges |
+
+Rebuild the ranges with `python scripts/build_microbiome_reference.py`. It downloads the IBDMDB files into the git-ignored `data/ibdmdb/` and writes `artifacts/microbiome_reference.json` and [the real-data report](artifacts/microbiome_realdata_report.md).
+
+**Why rules and not ML:** in a first-pass check on real IBDMDB data, a remission-visit stool sample showed no predictive signal for active disease at the next visit (AUC 0.48). The cohort has no one moving from pre-IBD to IBD, and its non-IBD group has no recorded alternative diagnoses. The 61-input risk model is unchanged.
+
+The full rule table is on the About page. Changing a rule must bump its `RULES_VERSION` in `webapp/clinic/alerts.py` or `webapp/clinic/referrals.py`. Run `python manage.py seed_demo_scenarios` to add three demonstration patients.
+
+---
+
 # Human-Centered AI
 
 IBD Care follows Human-Centered AI principles.

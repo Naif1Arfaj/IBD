@@ -1,0 +1,16 @@
+{% extends "clinic/base.html" %}{% load clinic_tags %}
+{% block title %}Referral review | {{ patient.patient_code }}{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'result' a.pk %}">{% icon "back" 15 %} Assessment</a>
+<div class="page-heading"><div>
+<p class="eyebrow">{{ patient.patient_code }}</p>
+<h1>Referral review</h1>
+<p class="lede">Record what is known. Leave anything unknown as "Not recorded"; it is never treated as absent.</p>
+</div></div>
+<div class="draft-note">Draft rules, pending clinical review. Not for use in patient care.</div>
+<form method="post" class="surface care-panel" data-busy="Reviewing...">{% csrf_token %}
+{% if form.errors %}<div class="notice error" role="alert" tabindex="-1" id="error-summary"><h2>Check these fields</h2><ul>{% for f in form %}{% if f.errors %}<li>{{ f.label }}: {{ f.errors|join:" " }}</li>{% endif %}{% endfor %}</ul></div>{% endif %}
+<div class="care-form">{% for f in form %}<div class="field"><label for="{{ f.id_for_label }}">{{ f.label }}</label>{{ f }}</div>{% endfor %}
+<div class="care-form-actions"><button class="button" type="submit"><span class="spinner"></span><span class="lbl">Review referral options</span> {% icon "arrow" 16 %}</button></div></div>
+</form>
+{% endblock %}

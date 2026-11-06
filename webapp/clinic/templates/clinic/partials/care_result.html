@@ -1,0 +1,25 @@
+{% load clinic_tags %}
+<div class="care-result">
+{% if assessment_alerts %}<section class="report-section" id="assessment-alerts">
+<div class="section-heading"><div><p class="eyebrow">MONITORING</p><h2>{% icon "bell" 19 %} Alerts from this assessment</h2></div></div>
+<ul class="rule-list">{% for alert in assessment_alerts %}<li><span class="risk-label {% if alert.severity == 'urgent' %}high{% else %}moderate{% endif %}">{{ alert.get_severity_display }}</span> <b>{{ alert.title }}</b><span class="source-note">{{ alert.detail }} Status: {{ alert.get_status_display }}.</span></li>{% endfor %}</ul>
+<p class="caption">Rules flag recorded changes; they do not predict a flare or confirm disease progression.</p>
+</section>{% endif %}
+{% if since_treatment %}<section class="report-section" id="since-treatment">
+<div class="section-heading"><div><p class="eyebrow">REASSESSMENT</p><h2>{% icon "pill" 19 %} Since {{ since_treatment.treatment.medication }} started</h2></div><span class="caption">{{ since_treatment.weeks }} week{{ since_treatment.weeks|pluralize }} after the {{ since_treatment.treatment.start_date|date:"j M Y" }} start</span></div>
+<div class="table-scroll"><table class="data-table since-table"><thead><tr><th>Measurement</th><th>Before medication ({{ since_treatment.baseline.created|date:"j M Y" }})</th><th>This assessment</th><th>Change</th></tr></thead><tbody>
+{% for row in since_treatment.rows %}<tr><th scope="row">{{ row.label }}</th><td>{{ row.before }}</td><td>{{ row.now }}</td><td>{{ row.change }}</td></tr>{% endfor %}
+<tr><th scope="row">New red flags</th><td colspan="3">{{ since_treatment.new_flags|join:", "|default:"None" }}</td></tr>
+<tr><th scope="row">Red flags no longer recorded</th><td colspan="3">{{ since_treatment.cleared_flags|join:", "|default:"None" }}</td></tr>
+<tr><th scope="row">Estimated IBD risk (secondary)</th><td>{{ since_treatment.estimate_before|pct:1 }}</td><td>{{ since_treatment.estimate_now|pct:1 }}</td><td></td></tr>
+</tbody></table></div>
+<p class="caption">This shows what changed, not why. The risk model was not validated for treatment response, so these changes do not show whether the medication worked. Interpret them with the clinical picture.</p>
+</section>{% endif %}
+<section class="report-section" id="referral-review">
+<div class="section-heading"><div><p class="eyebrow">NEXT STEP SUPPORT</p><h2>{% icon "clipboard" 19 %} Referral prioritization</h2></div></div>
+{% if referral_review %}<p><span class="risk-label {% if referral_review.result.priority == 'routine' %}low{% elif referral_review.result.priority == 'soon' %}moderate{% else %}high{% endif %}">{{ referral_review.result.priority_label }}</span> <b>{{ referral_review.result.department }}</b>{% if referral_review.decision %} &middot; Clinician decision: {{ referral_review.get_decision_display }}{% else %} &middot; Awaiting clinician decision{% endif %}</p>
+<p class="no-print" style="margin-top:12px"><a class="button secondary" href="{% url 'referral' referral_review.pk %}">Open review</a> <a class="button secondary" href="{% url 'referral_new' a.pk %}">New review</a></p>
+{% else %}<p class="section-description">Enter symptoms and tests to get a suggested urgency and department, including conditions that can mimic IBD.</p>
+<p class="no-print" style="margin-top:12px"><a class="button secondary" href="{% url 'referral_new' a.pk %}">Start referral review</a></p>{% endif %}
+</section>
+</div>

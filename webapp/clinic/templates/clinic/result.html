@@ -49,6 +49,7 @@
 </section>
 {% include "clinic/partials/clinical_snapshot.html" with show_risk=False snapshot_caption="Information saved with this assessment" %}
 {% if comparison %}<div class="report-comparison">{% include "clinic/partials/assessment_comparison.html" %}</div>{% endif %}
+{% include "clinic/partials/care_result.html" %}
 <section class="report-section" id="assessment-findings">
 <div class="section-heading">
 <div>
@@ -83,6 +84,9 @@
 </div>{% endfor %}</dl>
 </section>{% endfor %}</div>
 </details>
+{% if microbiome %}<details class="disclosure" id="microbiome-ranges"><summary>Microbiome values compared with a real cohort (IBDMDB)</summary>
+{% include "clinic/partials/microbiome_ranges.html" %}
+</details>{% endif %}
 </section>
 <section class="report-section evidence-preview" id="supporting-evidence">
 <div class="section-heading">

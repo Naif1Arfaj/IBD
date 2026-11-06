@@ -426,6 +426,48 @@ blockquote a { display:inline-block; font-size:11px; margin-top:10px; }
 @media (prefers-reduced-motion:reduce) { * { animation:none !important; scroll-behavior:auto !important; } }
 
 /* Printing respects the clinical details expanded by the nurse. */
+/* Real-cohort microbiome ranges: one hue, because each row is named directly. */
+.range-title { margin:0 0 8px; color:var(--accent); }
+.microbiome-ranges { padding-bottom:22px; }
+.microbiome-ranges>.caption { margin:0 0 12px; font-size:12px; }
+.range-key { display:flex; flex-wrap:wrap; gap:6px 18px; list-style:none; margin:0 0 6px; padding:0; font-size:11px; color:var(--secondary); }
+.range-key li { display:flex; align-items:center; gap:7px; }
+.range-key-line { width:22px; height:2px; background:#8fb2bc; }
+.range-key-box { width:22px; height:9px; border-radius:2px; background:var(--accent); opacity:.55; }
+.range-key-median { width:2px; height:13px; background:var(--accent-dark); }
+.range-key-patient { width:3px; height:15px; background:var(--ink); }
+.range-row { padding:15px 0; border-top:1px solid var(--line-soft); }
+.range-head { display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap; }
+.range-head h4 { margin:0; font-size:13px; font-weight:600; }
+.range-head strong { font-size:12px; font-weight:600; }
+.range-note { margin:4px 0 0; font-size:11px; color:var(--muted); }
+.range-outside { color:var(--ink); font-weight:600; }
+.range-chart { margin-top:9px; }
+.range-group,.range-axis { display:grid; grid-template-columns:minmax(0,170px) minmax(0,1fr) 128px; column-gap:14px; align-items:center; }
+.range-name { font-size:11px; color:var(--secondary); }
+.range-name small { color:var(--muted); font-size:10px; white-space:nowrap; }
+.range-track { position:relative; display:block; height:22px; min-width:0; }
+.range-line,.range-box,.range-median,.range-patient { position:absolute; display:block; }
+.range-line { top:10px; height:2px; background:#8fb2bc; }
+.range-box { top:6px; height:10px; border-radius:2px; background:var(--accent); opacity:.55; }
+.range-median { top:4px; width:2px; height:14px; margin-left:-1px; background:var(--accent-dark); }
+.range-patient { top:0; bottom:0; width:3px; margin-left:-1.5px; background:var(--ink); box-shadow:0 0 0 1px var(--paper); }
+.range-stat { font-size:11px; color:var(--secondary); font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+.range-axis { margin-top:3px; }
+.range-axis-ends { display:flex; justify-content:space-between; gap:8px; font-size:10px; color:var(--muted); border-top:1px solid var(--line); padding-top:3px; }
+@media (max-width:760px) {
+  .range-group,.range-axis { grid-template-columns:minmax(0,1fr) auto; row-gap:0; }
+  .range-name { grid-column:1; }
+  .range-stat { grid-column:2; grid-row:1; }
+  .range-track { grid-column:1 / -1; }
+  .range-axis>span:empty { display:none; }
+  .range-axis-ends { grid-column:1 / -1; }
+}
+@media print {
+  .range-row { break-inside:avoid; }
+  .range-box,.range-line,.range-median,.range-patient { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
+
 @media print {
   @page { size:A4; margin:14mm; }
   body { color:#222; background:white; font-size:10px; }
@@ -705,7 +747,7 @@ h1,h2,h3 { color:var(--navy); }
 .export-actions { display:flex; align-items:flex-end; flex-direction:column; gap:5px; }
 .export-actions small { font-size:10px; color:var(--muted); }
 @media print { .assessment-report details:not([open]) { display:none; } }
-@media print { .input-appendix:has(.full-inputs:not([open])) { display:none; } }
+@media print { .input-appendix:not(:has(details[open])) { display:none; } }
 
 /* Clinical snapshot: measured information, with no implied reference ranges. */
 .clinical-snapshot { border:1px solid var(--line); border-top:2px solid var(--accent); background:white; margin:0 0 26px; }
@@ -1032,3 +1074,49 @@ h1,h2,h3 { color:var(--navy); }
 .primary-nav a.active,.secondary-nav a.active { font-weight:700; }
 .primary-nav a:hover,.secondary-nav a:hover,.rail-toggle:hover { outline:1px solid var(--accent); outline-offset:-1px; }
 .login-introduction .organic-motif { color:var(--plum); }
+
+/* Care continuity: reassessment, monitoring, alerts and referral reviews. */
+.nav-count { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; margin-left:4px; border-radius:9px; background:var(--high); color:white; font-size:10px; font-weight:600; }
+.patient-actions { display:flex; align-items:center; gap:10px; margin-left:auto; flex-wrap:wrap; }
+.care-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; margin-bottom:24px; align-items:start; }
+.care-panel { padding:24px; }
+.care-panel h2 { margin-bottom:6px; }
+.care-panel form { margin-top:16px; }
+.care-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.care-form .field { display:flex; flex-direction:column; gap:5px; margin:0; }
+.care-form .field.wide,.care-form .care-form-actions { grid-column:1 / -1; }
+.care-form label { font-size:12px; font-weight:600; color:var(--secondary); }
+.care-form input:not([type=checkbox]),.care-form select { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:4px; background:white; }
+.care-form input[type=checkbox] { width:16px; height:16px; margin:0; flex:none; }
+.care-form label:has(input[type=checkbox]) { display:flex; align-items:center; gap:8px; }
+.alert-row { display:flex; gap:16px; align-items:flex-start; padding:16px 24px; border-top:1px solid var(--line-soft); flex-wrap:wrap; }
+.alert-row>div:first-child { flex:1 1 320px; min-width:0; }
+.alert-row h3 { margin:6px 0 4px; }
+.alert-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.alert-actions input { padding:8px 10px; border:1px solid var(--line); border-radius:4px; min-width:170px; }
+.filter-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:18px; }
+.filter-tabs a { padding:6px 12px; border:1px solid var(--line); border-radius:4px; background:white; font-size:12px; }
+.filter-tabs a[aria-current=page] { background:var(--accent); border-color:var(--accent); color:white; }
+.source-note { display:block; margin-top:4px; font-size:11px; color:var(--muted); line-height:1.5; }
+.care-summary { margin-bottom:28px; }
+.care-summary .attention-list { padding:0 24px 8px; border-top:0; }
+.treatment-marker { position:absolute; top:0; bottom:0; width:0; border-left:2px dashed var(--plum); pointer-events:auto; }
+.treatment-key { display:inline-block; width:0; height:12px; margin-right:6px; vertical-align:-1px; border-left:2px dashed var(--plum); }
+.care-result { display:grid; grid-template-columns:minmax(0,1fr); gap:0; }
+.since-table th[scope=row] { width:34%; }
+.priority-card { padding:20px 24px; margin-bottom:24px; border:1px solid var(--line); border-radius:4px; background:white; }
+.priority-card h1 { margin:4px 0 6px; }
+.priority-emergency { background:var(--high-soft); border-color:var(--high); }
+.priority-urgent { background:var(--high-soft); }
+.priority-soon { background:var(--moderate-soft); }
+.priority-routine { background:var(--low-soft); }
+.rule-list { margin:0; padding:0; list-style:none; }
+.rule-list li { padding:12px 0; border-top:1px solid var(--line-soft); }
+.rule-list li:first-child { border-top:0; }
+.draft-note { padding:10px 14px; margin-bottom:20px; border-left:3px solid var(--moderate); background:var(--moderate-soft); color:var(--moderate); font-size:12px; font-weight:600; }
+@media (max-width:760px) { .care-grid,.care-form { grid-template-columns:minmax(0,1fr); } .patient-actions { margin-left:0; width:100%; } }
+@media print { .care-result .report-section { break-inside:avoid; } }
+/* Six navigation items only fit the narrowest phones with tighter spacing. */
+@media (max-width:360px) { .primary-nav a,.secondary-nav a { padding-left:5px; padding-right:5px; } }
+@media (max-width:540px) { .page-tabs { flex-wrap:wrap; } }
+#real-data h3 { margin:20px 0 8px; }

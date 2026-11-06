@@ -104,6 +104,8 @@
 <dl class="about-facts">
 <div><dt>Clinical validation</dt><dd>Not validated with real patient data.</dd>
 </div>
+<div><dt>Real microbiome ranges</dt><dd>IBDMDB ranges are shown for context only. They do not change any estimate.</dd>
+</div>
 <div><dt>Before clinical deployment</dt><dd>Appropriate clinical validation, research governance and approval are required.</dd>
 </div>
 <div><dt>Supporting research</dt><dd>{% if stats %}{{ stats.documents }} papers in the library.{% else %}Library currently unavailable.{% endif %} Individual applicability requires review.</dd>
@@ -134,6 +136,27 @@
 </div>
 </dl>
 <p class="caption">These metrics measure recovery of a synthetic generation formula, not clinical accuracy. Explanations use SHAP contributions to the estimate.</p>
+</details>
+{% if real_data %}<details class="disclosure" id="real-data"><summary>Real microbiome reference data (IBDMDB)</summary>
+<p class="caption">{{ real_data.source }}: {{ real_data.samples }} stool samples from {{ real_data.people }} people aged {{ real_data.age_low }}–{{ real_data.age_high }} at consent ({{ real_data.non_ibd_people }} non-IBD, {{ real_data.crohns_people }} Crohn's disease, {{ real_data.colitis_people }} ulcerative colitis). Ranges use one median value per person. The risk model was not retrained on this data. With only {{ real_data.non_ibd_people }} non-IBD people, each end of their ranges rests on one or two people.</p>
+<h3>How much the 7 microbiome inputs can tell</h3>
+<div class="table-scroll"><table class="data-table"><thead><tr><th>Question</th><th>Result, with each person kept in one split</th></tr></thead><tbody>{% for question, result in real_data.signal %}<tr><th scope="row">{{ question }}</th><td>{{ result }}</td></tr>{% endfor %}</tbody></table></div>
+<p class="caption">An AUC of 0.5 is no better than chance. These are first-pass results without confidence intervals. Using all common species gives AUC {{ real_data.grouped_auc }}; splitting samples at random instead gives a false AUC of {{ real_data.careless_auc }}, because the model recognises the same people rather than disease.</p>
+<h3>Synthetic training data against the real ranges</h3>
+<div class="table-scroll"><table class="data-table"><thead><tr><th>Input</th><th>Synthetic median</th><th>Synthetic patients outside all three real ranges</th></tr></thead><tbody>{% for row in real_data.synthetic %}<tr><th scope="row">{{ row.label }}</th><td>{{ row.median }}</td><td>{{ row.outside }}</td></tr>{% endfor %}</tbody></table></div>
+<p class="caption">The model was trained on the synthetic scale, which differs from this real cohort on several inputs. The butyrate-producer total uses our own working genus list: {{ real_data.butyrate_genera }}.</p>
+<h3>Dysbiosis scores in the cohort</h3>
+<div class="table-scroll"><table class="data-table"><thead><tr><th>Group</th><th>Samples</th><th>People</th><th>Median score</th><th>Flagged samples</th></tr></thead><tbody>{% for row in real_data.dysbiosis %}<tr><th scope="row">{{ row.label }}</th><td>{{ row.samples }}</td><td>{{ row.people }}</td><td>{{ row.median_score }}</td><td>{{ row.flagged_pct }}%</td></tr>{% endfor %}</tbody></table></div>
+<p class="caption">Context only: patients have no comparable score, so the app never places a patient on this scale.</p>
+<h3>Sources</h3>
+<p class="caption">Lloyd-Price J, et al. Multi-omics of the gut microbial ecosystem in inflammatory bowel diseases. Nature 2019;569:655–662. Files: {% for s in real_data.sources %}<a href="{{ s.url }}" rel="noopener">{{ s.file }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}. The IBDMDB results and downloads pages state no data-use terms; this application stores derived percentiles only.</p>
+</details>{% endif %}
+<details class="disclosure" id="care-rules"><summary>Monitoring &amp; referral rules (draft, for clinical review)</summary>
+<p class="caption">These are transparent rules, not predictions, and none has been clinically reviewed. Real IBDMDB data showed no predictive signal for next-visit disease activity, and contains no one moving from pre-IBD to IBD. Sources were checked from abstracts, guideline summaries and local pathways; confirm them against full texts and Saudi pathways before any use.</p>
+<h3>Monitoring alerts ({{ alert_rules_version }})</h3>
+<div class="table-scroll"><table class="data-table"><thead><tr><th>Rule</th><th>Fires when</th><th>Source</th></tr></thead><tbody>{% for id, text, source in alert_rule_table %}<tr><th scope="row">{{ id }}</th><td>{{ text }}</td><td>{{ source }}</td></tr>{% endfor %}</tbody></table></div>
+<h3>Referral prioritization ({{ referral_rules_version }})</h3>
+<div class="table-scroll"><table class="data-table"><thead><tr><th>Rule</th><th>Priority</th><th>Fires when</th><th>Source</th></tr></thead><tbody>{% for id, priority, text, source in referral_rule_table %}<tr><th scope="row">{{ id }}</th><td>{{ priority }}</td><td>{{ text }}</td><td>{{ source }}</td></tr>{% endfor %}</tbody></table></div>
 </details>
 <div class="about-resource-links"><a href="{% url 'evidence' %}">Evidence library &rarr;</a><a href="{% url 'patients' %}">Patient directory &rarr;</a><a href="{% url 'reports' %}">Saved evidence archive &rarr;</a>
 </div>

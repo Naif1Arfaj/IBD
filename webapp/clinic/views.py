@@ -14,9 +14,12 @@ from rag import evidence as ev
 from rag import index as rag_index
 from rag import llm
 
+from . import alerts as alert_rules
+from . import care, microbiome
+from . import referrals as referral_rules
 from . import services as svc
-from .forms import PatientForm
-from .models import Assessment, EvidenceSummary, Patient, Report
+from .forms import MonitoringForm, PatientForm, TreatmentForm, entry_sections
+from .models import Alert, Assessment, EvidenceSummary, Patient, Report
 from .presentation import assessment_comparison, clinical_snapshot, risk_history
 
 
@@ -60,6 +63,9 @@ def dashboard(request):
         "attention": high[:5],
         "recent": Assessment.objects.select_related("patient").order_by("-created", "-pk")[:8],
         "distribution": distribution, "distribution_count": len(current_tiers),
+        "open_alerts": care.urgent_first(Alert.objects.filter(status="open").select_related("patient"))[:5],
+        "n_open_alerts": Alert.objects.filter(status="open").count(),
+        "overdue": care.overdue_plans()[:5],
     })
 
 
@@ -74,15 +80,22 @@ def patients(request):
 def patient(request, pk):
     p = get_object_or_404(Patient, pk=pk)
     section = request.GET.get("section", "overview")
-    if section not in ("overview", "assessments", "clinical"):
+    if section not in ("overview", "assessments", "care", "clinical"):
         section = "overview"
     groups = svc.grouped_data(p.data)
     last = p.assessments.order_by("-created", "-pk").first()
+    history = risk_history(p)
+    plan = p.monitoring if hasattr(p, "monitoring") else None
     return render(request, "clinic/patient.html", {
+        "plan": plan, "monitoring_form": MonitoringForm(instance=plan), "treatment_form": TreatmentForm(),
+        "treatments": p.treatments.all(), "open_alerts": care.urgent_first(p.alerts.filter(status="open")),
+        "plan_overdue": bool(plan and plan.active and plan.next_due < care.today()),
+        "treatment_markers": care.treatment_markers(p, history),
         "nav": "patients", "patient": p, "section": section, "groups": groups,
+        "microbiome": microbiome.patient_ranges(p.data),
         "last": last, "snapshot": clinical_snapshot(p.data, last),
         "comparison": assessment_comparison(last),
-        "risk_history": risk_history(p),
+        "risk_history": history,
         "history": Paginator(p.assessments.order_by("-created", "-pk"), 10).get_page(request.GET.get("page")),
         "biomarkers": next(g["items"] for g in groups if g["group"] == "Inflammatory biomarkers"),
         "red_flags": [i for g in groups if g["group"] == "Red flags" for i in g["items"]
@@ -104,27 +117,15 @@ def patient_new(request):
             p = Patient.objects.create(patient_code=code, source="manual", data=form.patient_data())
             messages.success(request, f"Patient {code} saved.")
             return redirect("patient", pk=p.pk)
-    grouped = dict(form.grouped())
-    sections = [
-        ("Patient profile", ["Demographic data"]),
-        ("Clinical history", ["Family history", "Medication and antibiotics", "Birth mode and early life"]),
-        ("Lifestyle & diet", ["Lifestyle", "Diet"]),
-        ("Biomarkers", ["Inflammatory biomarkers", "Metabolism related biomarkers"]),
-        ("Microbiome", ["Microbiome diversity"]),
-        ("Red flags & surgical history", ["Red flags"]),
-    ]
-    form_sections = [{"label": title, "fields": [f for g in names for f in grouped[g]],
-                      "has_errors": any(f.errors for g in names for f in grouped[g])}
-                     for title, names in sections]
     return render(request, "clinic/patient_form.html", {
-        "nav": "patients", "form": form, "form_sections": form_sections})
+        "nav": "patients", "form": form, "form_sections": entry_sections(form)})
 
 
 @login_required
 @require_POST
 def assess(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
-    a = svc.run_assessment(patient, request.user)
+    a = care.record_assessment(patient, request.user)
     return redirect("result", pk=a.pk)
 
 
@@ -158,6 +159,7 @@ def _assessment_page(request, a, saved_report=None):
     return render(request, "clinic/result.html", {
         "nav": "assessments", "a": a, "patient": a.patient, "r": saved_report,
         "next_step": svc.NEXT_STEPS[a.tier], "groups": groups, "assessment_red_flags": flags,
+        "microbiome": microbiome.patient_ranges(a.inputs),
         "increasing": [f for f in display_factors if f["direction"] == "raises"],
         "reducing": [f for f in display_factors if f["direction"] == "lowers"],
         "snapshot": clinical_snapshot(a.inputs, finding_features={f["feature"] for f in factors}),
@@ -168,6 +170,8 @@ def _assessment_page(request, a, saved_report=None):
         "supporting_evidence": evidence, "research_factors": factors[:svc.N_REPORT_FACTORS],
         "risk_widths": [low * 100, (moderate - low) * 100, (1 - moderate) * 100],
         "risk_position": max(1, min(99, a.probability * 100)), "card": card,
+        "since_treatment": care.since_treatment(a), "assessment_alerts": care.urgent_first(a.alerts.all()),
+        "referral_review": a.referral_reviews.first(),
     })
 
 
@@ -245,4 +249,6 @@ def settings_page(request):
     stats = rag_index.load().stats() if rag_index.exists() else None
     return render(request, "clinic/settings.html", {
         "nav": "settings", "llm_on": llm.available(), "model": llm.MODEL, "stats": stats,
-        "card": svc.model_card(), "groups": GROUPS})
+        "card": svc.model_card(), "groups": GROUPS, "real_data": microbiome.about_summary(),
+        "alert_rule_table": alert_rules.RULE_TABLE, "alert_rules_version": alert_rules.RULES_VERSION,
+        "referral_rule_table": referral_rules.RULE_TABLE, "referral_rules_version": referral_rules.RULES_VERSION})

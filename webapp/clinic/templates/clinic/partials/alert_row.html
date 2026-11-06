@@ -1,0 +1,17 @@
+{% load clinic_tags %}
+<article class="alert-row">
+<div>
+<span class="risk-label {% if alert.severity == 'urgent' %}high{% else %}moderate{% endif %}">{{ alert.get_severity_display }}</span>
+{% if show_patient %}<a href="{% url 'patient' alert.patient_id %}?section=care"><b>{{ alert.patient.patient_code }}</b></a>{% endif %}
+<h3>{{ alert.title }}</h3>
+<p>{{ alert.detail }}</p>
+<span class="source-note">{{ alert.created|date:"j M Y, H:i" }}{% if alert.assessment_id %} &middot; <a href="{% url 'result' alert.assessment_id %}">Open assessment</a>{% endif %}</span>
+<span class="source-note">Source: {{ alert.source }}</span>
+{% if alert.status != 'open' %}<span class="source-note">{{ alert.get_status_display }}{% if alert.acted_by %} by {{ alert.acted_by.get_full_name|default:alert.acted_by.username }}{% endif %}{% if alert.acted_at %}, {{ alert.acted_at|date:"j M Y, H:i" }}{% endif %}{% if alert.note %}: {{ alert.note }}{% endif %}</span>{% endif %}
+</div>
+{% if alert.status != 'resolved' %}<form class="alert-actions no-print" method="post" action="{% url 'alert_action' alert.pk %}">{% csrf_token %}
+<input name="note" maxlength="300" placeholder="Note (optional)" aria-label="Note">
+{% if alert.status == 'open' %}<button class="button secondary" type="submit" name="status" value="acknowledged">Acknowledge</button>{% endif %}
+<button class="button secondary" type="submit" name="status" value="resolved">Resolve</button>
+</form>{% endif %}
+</article>

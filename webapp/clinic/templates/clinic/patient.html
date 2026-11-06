@@ -8,12 +8,14 @@
 <h1>{{ patient.patient_code }}</h1>
 <p class="patient-demographics">{{ patient.age }} years <span>&middot;</span> {{ patient.sex }} <span>&middot;</span> BMI {{ patient.data.BMI_kg_m2 }} kg/m&sup2;</p>
 </div>
+<div class="patient-actions no-print"><a class="button secondary" href="{% url 'patient_edit' patient.pk %}">Update values</a>
 <form method="post" action="{% url 'assess' patient.pk %}" data-busy="Assessing...">{% csrf_token %}<button class="button" type="submit"><span class="spinner"></span><span class="lbl">{% if last %}Run new assessment{% else %}Run assessment{% endif %}</span>{% icon "arrow" 16 %}</button>
-</form>
+</form></div>
 </header>
-<nav class="page-tabs" aria-label="Patient sections"><a href="?section=overview" {% if section == 'overview' %}aria-current="page"{% endif %}>Overview</a><a href="?section=assessments" {% if section == 'assessments' %}aria-current="page"{% endif %}>Assessments</a><a href="?section=clinical" {% if section == 'clinical' %}aria-current="page"{% endif %}>Clinical information</a>
+<nav class="page-tabs" aria-label="Patient sections"><a href="?section=overview" {% if section == 'overview' %}aria-current="page"{% endif %}>Overview</a><a href="?section=assessments" {% if section == 'assessments' %}aria-current="page"{% endif %}>Assessments</a><a href="?section=care" {% if section == 'care' %}aria-current="page"{% endif %}>Medication &amp; monitoring{% if open_alerts %} <span class="nav-count">{{ open_alerts|length }}</span>{% endif %}</a><a href="?section=clinical" {% if section == 'clinical' %}aria-current="page"{% endif %}>Clinical information</a>
 </nav>
 {% if section == 'overview' %}
+{% if open_alerts %}<div class="notice error no-print" role="status"><b>{{ open_alerts|length }} open alert{{ open_alerts|pluralize }}.</b> {{ open_alerts.0.title }}. <a href="?section=care">Review</a></div>{% endif %}
 {% include "clinic/partials/clinical_snapshot.html" with show_risk=True snapshot_caption="Current recorded information" %}
 {% include "clinic/partials/risk_history.html" %}
 {% if comparison %}<details class="disclosure patient-comparison-detail"><summary>Compare the latest two assessments</summary>{% include "clinic/partials/assessment_comparison.html" %}</details>
@@ -35,6 +37,8 @@
 <h3>No assessments yet</h3>
 <p>Run an assessment after reviewing the patient information.</p>
 </div>{% endif %}</section>{% include "clinic/partials/pagination.html" with page=history %}
+{% elif section == 'care' %}
+{% include "clinic/partials/care_panel.html" %}
 {% else %}
 <div class="section-heading">
 <div>
@@ -45,6 +49,7 @@
 <div class="clinical-details">{% for g in groups %}<details class="disclosure" {% if g.group == 'Red flags' %}id="red-flags" open{% endif %}><summary>{{ g.group|clinical_group }}<span>{{ g.items|length }} recorded values</span></summary>
 <dl class="clinical-facts">{% for i in g.items %}<div><dt>{{ i.label }}</dt><dd>{{ i.value }}</dd>
 </div>{% endfor %}</dl>
+{% if g.group == 'Microbiome diversity' and microbiome %}<h3 class="range-title">Compared with a real cohort (IBDMDB)</h3>{% include "clinic/partials/microbiome_ranges.html" %}{% endif %}
 </details>{% endfor %}</div>
 {% endif %}
 {% endblock %}

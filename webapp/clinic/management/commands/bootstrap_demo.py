@@ -15,6 +15,7 @@ class Command(BaseCommand):
             raise CommandError("Set DEMO_NURSE_PASSWORD to at least 12 characters.")
         call_command("migrate", interactive=False, verbosity=0)
         call_command("load_patients")
+        call_command("seed_demo_scenarios")  # SQLite resets on restart; restores the demo's history and alerts
         user, _ = get_user_model().objects.get_or_create(
             username="nurse", defaults={"first_name": "Nurse"})
         if not user.check_password(password):

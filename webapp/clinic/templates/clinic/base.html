@@ -31,6 +31,7 @@
       <a href="{% url 'dashboard' %}" aria-label="Overview" title="Overview" {% if nav == 'dashboard' %}class="active" aria-current="page"{% endif %}>{% icon "home" 18 %} <span class="nav-label">Overview</span></a>
       <a href="{% url 'patients' %}" aria-label="Patients" title="Patients" {% if nav == 'patients' %}class="active" aria-current="page"{% endif %}>{% icon "users" 18 %} <span class="nav-label">Patients</span></a>
       <a href="{% url 'assessments' %}" aria-label="Assessments" title="Assessments" {% if nav == 'assessments' %}class="active" aria-current="page"{% endif %}>{% icon "clipboard" 18 %} <span class="nav-label">Assessments</span></a>
+      <a href="{% url 'alerts' %}" aria-label="Alerts" title="Alerts" {% if nav == 'alerts' %}class="active" aria-current="page"{% endif %}>{% icon "bell" 18 %} <span class="nav-label">Alerts{% if open_alert_count %} <span class="nav-count">{{ open_alert_count }}</span>{% endif %}</span></a>
       <a href="{% url 'evidence' %}" aria-label="Evidence library" title="Evidence library" {% if nav == 'evidence' %}class="active" aria-current="page"{% endif %}>{% icon "book" 18 %} <span class="nav-label">Evidence library</span></a>
     </nav>
     <nav class="secondary-nav" aria-label="System"><a href="{% url 'settings' %}" aria-label="About" title="About" {% if nav == 'settings' %}class="active" aria-current="page"{% endif %}>{% icon "shield" 16 %} <span class="nav-label">About</span></a>

@@ -1,0 +1,20 @@
+{% extends "clinic/base.html" %}{% load clinic_tags %}
+{% block title %}Alerts{% endblock %}
+{% block content %}
+<div class="page-heading"><div>
+<p class="eyebrow">MONITORING</p>
+<h1>Alerts</h1>
+<p class="lede">Recorded changes in monitored patients, for clinical review. These are transparent rules, not predictions.</p>
+</div></div>
+<nav class="filter-tabs" aria-label="Filter alerts">{% for value, text in status_tabs %}<a href="?status={{ value }}" {% if status == value %}aria-current="page"{% endif %}>{{ text }}</a>{% endfor %}</nav>
+<section class="surface" style="margin-bottom:24px">
+<div class="section-heading"><h2>{% icon "bell" 18 %} Alerts</h2></div>
+{% for alert in page.object_list %}{% include "clinic/partials/alert_row.html" with show_patient=True %}{% empty %}<div class="empty"><h3>No alerts here</h3><p>Alerts appear when a new assessment of a monitored patient triggers a rule.</p></div>{% endfor %}
+</section>
+{% include "clinic/partials/pagination.html" with page=page %}
+<section class="surface" style="margin-bottom:24px">
+<div class="section-heading"><h2>{% icon "clipboard" 18 %} Overdue reviews</h2></div>
+{% if overdue %}<div class="table-scroll"><table class="data-table"><thead><tr><th>Patient</th><th>Status</th><th>Review was due</th></tr></thead><tbody>{% for plan in overdue %}<tr><th scope="row"><a href="{% url 'patient' plan.patient_id %}?section=care">{{ plan.patient.patient_code }}</a></th><td>{{ plan.get_care_status_display }}</td><td>{{ plan.next_due|date:"j M Y" }}</td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty"><p>No reviews are overdue.</p></div>{% endif %}
+</section>
+<div class="notice"><b>Limits of these alerts.</b> They appear in this app only (no email or SMS) and only when a new assessment is saved. Thresholds are drafts pending clinical review; see <a href="{% url 'settings' %}#care-rules">the rule table</a>. {{ disclaimer }}</div>
+{% endblock %}

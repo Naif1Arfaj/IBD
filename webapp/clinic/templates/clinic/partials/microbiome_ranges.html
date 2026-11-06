@@ -1,0 +1,22 @@
+<div class="microbiome-ranges">
+<p class="caption">For context only: these ranges do not change the risk estimate and must not be used to suggest a diagnosis. They describe a US research cohort (IBDMDB, ages {{ microbiome.age_low }}–{{ microbiome.age_high }}) and are not clinical normal ranges. Non-IBD controls had a colonoscopy for screening or non-specific symptoms. Demo patient values are synthetic and often sit on a different scale from these real measurements, especially Shannon diversity, so a value outside a range here is expected in this demonstration.</p>
+<ul class="range-key" aria-label="How to read the bars">
+<li><span class="range-key-line"></span>5th–95th percentile</li>
+<li><span class="range-key-box"></span>25th–75th percentile</li>
+<li><span class="range-key-median"></span>Median</li>
+<li><span class="range-key-patient"></span>This patient</li>
+</ul>
+{% for row in microbiome.rows %}<section class="range-row">
+<div class="range-head"><h4>{{ row.label }}</h4><strong>{% if row.value %}This patient: {{ row.value }}{% else %}Not recorded{% endif %}</strong></div>
+{% if row.outside %}<p class="range-note range-outside">{{ row.outside }}</p>{% endif %}
+{% if row.note %}<p class="range-note">{{ row.note }}</p>{% endif %}
+<div class="range-chart">
+{% for g in row.groups %}<div class="range-group" title="{{ g.label }}: median {{ g.stat }}, {{ g.people }} people">
+<span class="range-name">{{ g.label }} <small>{{ g.people }} people</small></span>
+<span class="range-track" aria-hidden="true"><span class="range-line" style="left:{{ g.left }}%;width:{{ g.width }}%"></span><span class="range-box" style="left:{{ g.box_left }}%;width:{{ g.box_width }}%"></span><span class="range-median" style="left:{{ g.median }}%"></span>{% if row.marker is not None %}<span class="range-patient" style="left:{{ row.marker }}%"></span>{% endif %}</span>
+<span class="range-stat">{{ g.stat }}</span>
+</div>{% endfor %}
+<div class="range-axis" aria-hidden="true"><span></span><span class="range-axis-ends"><span>{{ row.axis_low }}</span>{% if row.is_log %}<span>log scale</span>{% endif %}<span>{{ row.axis_high }}</span></span><span></span></div>
+</div>
+</section>{% endfor %}
+</div>

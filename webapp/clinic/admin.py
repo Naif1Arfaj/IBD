@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Assessment, EvidenceSummary, Patient, Report
+from .models import Alert, Assessment, EvidenceSummary, MonitoringPlan, Patient, ReferralReview, Report, TreatmentEvent
 
 
 @admin.register(Patient)
@@ -18,3 +18,7 @@ class AssessmentAdmin(admin.ModelAdmin):
 
 admin.site.register(Report)
 admin.site.register(EvidenceSummary)
+admin.site.register(TreatmentEvent)
+admin.site.register(MonitoringPlan)
+admin.site.register(Alert)
+admin.site.register(ReferralReview)

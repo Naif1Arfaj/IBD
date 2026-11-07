@@ -1,7 +1,7 @@
 # Free demo only: local assessment data resets on restart/redeploy.
 services:
   - type: web
-    name: ibd-care-demo
+    name: ibd-care-naif
     runtime: python
     plan: free
     buildCommand: bash deploy/build.sh

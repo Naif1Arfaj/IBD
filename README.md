@@ -10,7 +10,7 @@ A nurse-focused clinical decision-support prototype combining **interpretable ma
 
 <br>
 
-[![Live Demo](https://img.shields.io/badge/LIVE%20DEMO-Open%20IBD%20Care-72AEB8?style=for-the-badge&logo=render&logoColor=white)](https://ibd-care-naif.onrender.com)
+[![Live Demo](https://img.shields.io/badge/LIVE%20DEMO-Open%20IBD%20Care-72AEB8?style=for-the-badge&logo=render&logoColor=white)](https://ibd-care.onrender.com)
 [![Python](https://img.shields.io/badge/Python-3.11-183747?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/Django-5.2-456C5B?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![SHAP](https://img.shields.io/badge/Explainability-SHAP-796382?style=for-the-badge)](https://shap.readthedocs.io/)
@@ -731,9 +731,9 @@ python manage.py test clinic
 
 <div align="center">
 
-[![Launch IBD Care](https://img.shields.io/badge/LAUNCH%20IBD%20CARE-Render-72AEB8?style=for-the-badge&logo=render&logoColor=white)](https://ibd-care-naif.onrender.com)
+[![Launch IBD Care](https://img.shields.io/badge/LAUNCH%20IBD%20CARE-Render-72AEB8?style=for-the-badge&logo=render&logoColor=white)](https://ibd-care.onrender.com)
 
-### https://ibd-care-naif.onrender.com
+### https://ibd-care.onrender.com
 
 </div>
 
@@ -809,6 +809,6 @@ Password: nurse-demo26
 
 **Information · Understanding · Care**
 
-[![Open Live Demo](https://img.shields.io/badge/OPEN%20LIVE%20DEMO-72AEB8?style=for-the-badge&logo=render&logoColor=white)](https://ibd-care-naif.onrender.com)
+[![Open Live Demo](https://img.shields.io/badge/OPEN%20LIVE%20DEMO-72AEB8?style=for-the-badge&logo=render&logoColor=white)](https://ibd-care.onrender.com)
 
 </div>

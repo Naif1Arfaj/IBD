@@ -13,8 +13,8 @@ prediction, explanation and evidence-search implementations.
 3. Set `DEMO_NURSE_PASSWORD` to a password of at least 12 characters when asked.
    The username is `nurse`. Keep this password in Render's secret environment
    settings; do not commit it.
-4. Deploy. The service is named `ibd-care-naif`, so the site is
-   `https://ibd-care-naif.onrender.com`.
+4. Deploy. The service is named `ibd-care`, so the site is
+   `https://ibd-care.onrender.com`.
    Test login, a patient assessment, evidence retrieval, and report generation.
    Inspect the logs if the process exceeds the free instance's memory limit.
 

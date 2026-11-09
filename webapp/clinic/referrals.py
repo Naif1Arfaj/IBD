@@ -24,7 +24,7 @@ SOURCES = {
               "mucosa. Listed as a mimic in the Detailed Project Report, section 4.3."),
     "ibs": "BJGP 2025 IBS algorithm (full blood count, CRP, coeliac serology), with the calprotectin pathway above.",
     "blood_tests": "BNSSG (Bristol) suspected-IBD pathway: full blood count, ferritin, CRP and tTG antibodies.",
-    "model": "IBD Care product rule on the prototype estimate; not a validated referral criterion.",
+    "model": "AIGUT product rule on the prototype estimate; not a validated referral criterion.",
 }
 
 # Shown on the About page so a clinician can review and sign off every rule.

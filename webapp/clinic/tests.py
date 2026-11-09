@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
-from features import FEATURES, NO_NARRATE, encode, load_raw
+from features import FEATURES, MODEL_COLUMNS, NO_NARRATE, by_feature, encode, json_value, load_raw
 from predict import predict_ibd
 from rag import index as rag_index
 
@@ -17,7 +17,7 @@ from .templatetags.clinic_tags import readable_text
 
 
 def _py(v):
-    return v.item() if hasattr(v, "item") else v
+    return json_value(v)
 
 
 class PresentationTests(SimpleTestCase):
@@ -61,7 +61,7 @@ class AssessmentTests(Base):
         a = svc.run_assessment(p)
         from predict import _load
         _, explainer = _load()
-        sv = np.asarray(explainer(encode(pd.DataFrame([p.data])))[0])
+        sv = by_feature(explainer(encode(pd.DataFrame([p.data])))[0])  # pain-location columns summed per input
         expected = sum(v for f, v in zip(FEATURES, sv) if f not in NO_NARRATE)
         self.assertAlmostEqual(sum(g["shap"] for g in a.group_factors), expected, places=2)
 
@@ -74,7 +74,7 @@ class FormTests(Base):
         form = PatientForm(data)
         self.assertTrue(form.is_valid(), form.errors)
         X = encode(pd.DataFrame([form.patient_data()]))
-        self.assertEqual(X.shape, (1, 61))
+        self.assertEqual(X.shape, (1, len(MODEL_COLUMNS)))
 
     def test_out_of_range_rejected(self):
         form = PatientForm()
@@ -289,7 +289,7 @@ class PageTests(Base):
         for section in ("WHAT IBD CARE DOES", "Intended clinical use", "human remains in control", "Synthetic/demo data",
                         "Validation status", "Technical transparency"):
             self.assertContains(page, section)
-        self.assertContains(page, '<h1>About IBD Care</h1>', html=True)
+        self.assertContains(page, '<h1>About AIGUT</h1>', html=True)
 
     def test_empty_distribution_does_not_imply_any_assessments(self):
         page = self.client.get(reverse("dashboard"))
@@ -330,7 +330,7 @@ class PageTests(Base):
         page = self.client.get(reverse("patient_new"))
         sections = page.context["form_sections"]
         fields = [f.name for section in sections for f in section["fields"]]
-        self.assertEqual(len(sections), 6)
+        self.assertEqual(len(sections), 7)
         self.assertCountEqual(fields, FEATURES)
 
     def test_invalid_entry_opens_the_section_and_links_to_the_field(self):

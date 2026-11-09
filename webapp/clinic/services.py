@@ -5,8 +5,8 @@ from functools import lru_cache
 import numpy as np
 import pandas as pd
 
-from features import (BINARY_01_COLS, DISCLAIMER, FEATURES, GROUPS, NO_NARRATE, ORDINAL, YES_NO, YES_NO_COLS,
-                      encode, load_raw)
+from features import (BINARY_01_COLS, DISCLAIMER, FEATURES, GROUPS, NO_NARRATE, NOMINAL, OPTIONAL_BINARY_COLS,
+                      ORDINAL, YES_NO, YES_NO_COLS, by_feature, encode, is_blank, load_raw)
 from predict import _load as load_model
 from rag import evidence as ev
 from rag import llm
@@ -45,7 +45,7 @@ def dataset_stats():
     for c in FEATURES:
         if raw[c].dtype == object:
             continue
-        col = raw[c].astype(float)
+        col = raw[c].astype(float).dropna()
         stats[c] = {"min": float(col.min()), "max": float(col.max()), "p33": float(col.quantile(0.33)),
                     "p67": float(col.quantile(0.67)), "integer": bool((col == col.round()).all())}
     return stats
@@ -56,13 +56,17 @@ def choices_for(feature):
         return list(ORDINAL[feature])
     if feature in YES_NO_COLS:
         return list(YES_NO)
-    if feature in BINARY_01_COLS:
+    if feature in BINARY_01_COLS or feature in OPTIONAL_BINARY_COLS:
         return ["No", "Yes"]
+    if feature in NOMINAL:
+        return ["None", *NOMINAL[feature]]
     return None
 
 
 def display_value(feature, value):
-    if feature in BINARY_01_COLS:
+    if is_blank(value):
+        return "Not recorded"
+    if feature in BINARY_01_COLS or feature in OPTIONAL_BINARY_COLS:
         return "Yes" if str(value) in ("1", "1.0", "Yes") else "No"
     if isinstance(value, float):
         value = f"{value:g}"
@@ -98,7 +102,7 @@ def run_assessment(patient, user=None):
     X = encode(pd.DataFrame([patient.data]))
     p = float(bundle["model"].predict_proba(X)[0, 1])
     shap_row = np.asarray(explainer(X)[0], dtype=float)
-    contrib = dict(zip(FEATURES, shap_row))
+    contrib = dict(zip(FEATURES, by_feature(shap_row)))  # one-hot pain-location columns summed into one input
 
     factors = [{"feature": f, "label": label(f), "value": display_value(f, patient.data.get(f)),
                 "shap": round(float(v), 4), "direction": "raises" if v > 0 else "lowers"}

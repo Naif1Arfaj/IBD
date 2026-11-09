@@ -77,6 +77,7 @@
 <h2>Recorded clinical information</h2><a class="no-print" href="{% url 'patient' patient.pk %}?section=clinical">Current patient record &rarr;</a>
 </div>
 <p class="caption">The optional appendix contains the full information saved with this assessment.</p>
+{% if unrecorded_optional %}<p class="caption">{{ unrecorded_optional|length }} sign, symptom or blood-test value{{ unrecorded_optional|length|pluralize }} {{ unrecorded_optional|length|pluralize:"was,were" }} not recorded, so the estimate used a typical value for {{ unrecorded_optional|length|pluralize:"it,them" }}: {{ unrecorded_optional|join:", " }}.</p>{% endif %}
 <details class="disclosure full-inputs"><summary>All information used in this assessment</summary>
 <div class="snapshot-groups">{% for g in groups %}<section>
 <h3>{{ g.group|clinical_group }}</h3>

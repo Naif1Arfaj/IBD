@@ -9,7 +9,7 @@ from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from features import DISCLAIMER, GROUPS
+from features import BLANK_MEANS_NONE, DISCLAIMER, GROUPS, OPTIONAL, is_blank
 from rag import evidence as ev
 from rag import index as rag_index
 from rag import llm
@@ -160,6 +160,8 @@ def _assessment_page(request, a, saved_report=None):
         "nav": "assessments", "a": a, "patient": a.patient, "r": saved_report,
         "next_step": svc.NEXT_STEPS[a.tier], "groups": groups, "assessment_red_flags": flags,
         "microbiome": microbiome.patient_ranges(a.inputs),
+        # Blank optional inputs are imputed; say so. A blank pain location, frequency or duration means none.
+        "unrecorded_optional": [svc.label(f) for f in OPTIONAL if f not in BLANK_MEANS_NONE and is_blank(a.inputs.get(f))],
         "increasing": [f for f in display_factors if f["direction"] == "raises"],
         "reducing": [f for f in display_factors if f["direction"] == "lowers"],
         "snapshot": clinical_snapshot(a.inputs, finding_features={f["feature"] for f in factors}),

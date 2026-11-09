@@ -25,7 +25,7 @@ RED_FLAGS = {
     "unprovoked_VTE_history": "Unprovoked VTE",
 }
 
-SOURCE_PRODUCT = "IBD Care product rule on the prototype estimate; not a clinical guideline."
+SOURCE_PRODUCT = "AIGUT product rule on the prototype estimate; not a clinical guideline."
 SOURCE_CALPROTECTIN = ("AGA 2023 biomarker guidelines use 150 µg/g (Crohn's: Gastroenterology 2023;165:1367-1399; "
                        "UC: Singh et al. 2023). Checked from abstracts and summaries; confirm against the full text.")
 SOURCE_CRP = ("Research library: Diagnostic Accuracy of Noninvasive Biomarkers and Imaging for Evaluating "

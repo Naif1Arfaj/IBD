@@ -18,6 +18,7 @@ from sklearn.base import clone
 from sklearn.calibration import calibration_curve
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier, VotingClassifier
+from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score, average_precision_score, brier_score_loss, confusion_matrix, f1_score,
@@ -28,7 +29,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import SplineTransformer, StandardScaler
 
 from explain import top_factors, make_explainer
-from features import BINARY_01_COLS, DISCLAIMER, EXCLUDED, FEATURES, GROUPS, ORDINAL, YES_NO_COLS, encode, load_raw
+from features import (BINARY_01_COLS, DISCLAIMER, EXCLUDED, FEATURES, GROUPS, MODEL_COLUMNS, NO_NARRATE, OPTIONAL,
+                      OPTIONAL_BINARY_COLS, ORDINAL, YES_NO_COLS, by_feature, encode, load_raw)
 
 warnings.filterwarnings("ignore")
 SEED = 42
@@ -37,34 +39,42 @@ TIERS = {"Low": 0.20, "Moderate": 0.50}  # p < 0.20 Low, 0.20-0.50 Moderate, >= 
 OUT = Path(__file__).resolve().parent / "artifacts"
 OUT.mkdir(exist_ok=True)
 
-CONTINUOUS = [c for c in FEATURES if c not in ORDINAL and c not in YES_NO_COLS and c not in BINARY_01_COLS]
+CONTINUOUS = [c for c in MODEL_COLUMNS if c in FEATURES and c not in ORDINAL and c not in YES_NO_COLS
+              and c not in BINARY_01_COLS and c not in OPTIONAL_BINARY_COLS]
+
+
+def impute():
+    """Blank optional inputs (symptoms, blood tests) -> training-fold median, fitted inside every pipeline."""
+    return SimpleImputer(strategy="median", keep_empty_features=True).set_output(transform="pandas")
 
 
 def candidates():
     inner = StratifiedKFold(5, shuffle=True, random_state=SEED + 1)
     ap = "average_precision"
-    lr = Pipeline([("scale", StandardScaler()), ("clf", LogisticRegression(max_iter=5000))])
-    lr_l1 = Pipeline([("scale", StandardScaler()),
+    lr = Pipeline([("impute", impute()), ("scale", StandardScaler()), ("clf", LogisticRegression(max_iter=5000))])
+    lr_l1 = Pipeline([("impute", impute()), ("scale", StandardScaler()),
                       ("clf", LogisticRegression(penalty="l1", solver="liblinear", max_iter=5000))])
     spline = Pipeline([
+        ("impute", impute()),
         ("prep", ColumnTransformer(
             [("spl", SplineTransformer(n_knots=4, degree=3), CONTINUOUS)],
             remainder="passthrough")),
         ("scale", StandardScaler()),
         ("clf", LogisticRegression(max_iter=5000)),
     ])
-    hgb = HistGradientBoostingClassifier(random_state=SEED, early_stopping=False)
-    rf = RandomForestClassifier(n_estimators=500, random_state=SEED, n_jobs=-1)
+    hgb = Pipeline([("impute", impute()), ("clf", HistGradientBoostingClassifier(random_state=SEED, early_stopping=False))])
+    rf = Pipeline([("impute", impute()), ("clf", RandomForestClassifier(n_estimators=500, random_state=SEED, n_jobs=-1))])
     Cs = [0.01, 0.03, 0.1, 0.3, 1, 3]
     return {
         "Logistic Regression (L2)": GridSearchCV(lr, {"clf__C": Cs}, scoring=ap, cv=inner),
         "Sparse Logistic Regression (L1)": GridSearchCV(lr_l1, {"clf__C": Cs}, scoring=ap, cv=inner),
         "Logistic Regression + splines": GridSearchCV(spline, {"clf__C": [0.003, 0.01, 0.03, 0.1]}, scoring=ap, cv=inner),
-        "Random Forest": GridSearchCV(rf, {"min_samples_leaf": [1, 3, 5], "max_features": ["sqrt", 0.3]},
+        "Random Forest": GridSearchCV(rf, {"clf__min_samples_leaf": [1, 3, 5], "clf__max_features": ["sqrt", 0.3]},
                                       scoring=ap, cv=inner, n_jobs=1),
         "Gradient Boosting (HistGB)": RandomizedSearchCV(
-            hgb, {"learning_rate": [0.02, 0.05, 0.1], "max_iter": [200, 400, 800], "max_depth": [2, 3, 4, None],
-                  "min_samples_leaf": [10, 20, 40], "l2_regularization": [0, 0.1, 1.0]},
+            hgb, {"clf__learning_rate": [0.02, 0.05, 0.1], "clf__max_iter": [200, 400, 800],
+                  "clf__max_depth": [2, 3, 4, None], "clf__min_samples_leaf": [10, 20, 40],
+                  "clf__l2_regularization": [0, 0.1, 1.0]},
             n_iter=15, scoring=ap, cv=inner, random_state=SEED),
     }
 
@@ -133,10 +143,10 @@ def main():
     raw = load_raw()
     X = encode(raw)
     y = raw["synthetic_IBD_outcome"].astype(int).values
-    assert list(X.columns) == FEATURES and X.shape[1] == 61
+    assert list(X.columns) == MODEL_COLUMNS and len(FEATURES) == 98
     assert not set(X.columns) & set(EXCLUDED), "leakage column in features"
-    assert not X.isna().any().any()
-    print(f"Data: {X.shape[0]} rows, {X.shape[1]} features, prevalence {y.mean():.3f}")
+    assert not X.drop(columns=OPTIONAL, errors="ignore").isna().any().any(), "only optional inputs may be blank"
+    print(f"Data: {X.shape[0]} rows, {len(FEATURES)} inputs ({X.shape[1]} model columns), prevalence {y.mean():.3f}")
 
     X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, stratify=y, random_state=SEED)
     outer = StratifiedKFold(5, shuffle=True, random_state=SEED)
@@ -244,10 +254,15 @@ def main():
     final = build(chosen, X, y)
     explainer = make_explainer(final, X)
     shap_X = X.sample(300, random_state=SEED)
-    sv = explainer(shap_X)
+    sv = by_feature(explainer(shap_X))  # one column per input (pain-location columns summed)
     mean_abs = pd.Series(np.abs(sv).mean(0), index=FEATURES).sort_values(ascending=False)
-    mean_signed_corr = {c: np.corrcoef(shap_X[c], sv[:, i])[0, 1]
-                        if shap_X[c].std() > 0 else 0 for i, c in enumerate(FEATURES)}
+
+    def signed_corr(i, c):  # pandas skips blanks; a one-hot input has no single value column
+        if c not in shap_X.columns or shap_X[c].std() == 0:
+            return 0.0
+        r = shap_X[c].corr(pd.Series(sv[:, i], index=shap_X.index))
+        return 0.0 if np.isnan(r) else float(r)
+    mean_signed_corr = {c: signed_corr(i, c) for i, c in enumerate(FEATURES)}
 
     fig, ax = plt.subplots(figsize=(7, 8))
     top20 = mean_abs.head(20)[::-1]
@@ -263,10 +278,14 @@ def main():
     # SHAP sanity checks (README V6).
     expected = {"fiber_g_day": -1, "alpha_diversity_Shannon": -1, "serum_butyrate_umol_L": -1,
                 "fecal_butyrate_umol_g": -1, "vitamin_D_ng_mL": -1, "fecal_calprotectin_ug_g": 1,
-                "Proteobacteria_abundance_pct": 1, "antibiotic_courses_year": 1}
-    sign_rows = [{"feature": f, "expected": "raises" if s > 0 else "lowers",
-                  "model": "raises" if mean_signed_corr[f] > 0 else "lowers",
-                  "match": "yes" if np.sign(mean_signed_corr[f]) == s else "NO"} for f, s in expected.items()]
+                "Proteobacteria_abundance_pct": 1, "antibiotic_courses_year": 1,
+                "blood_in_stool": 1, "visible_rectal_bleeding": 1, "nocturnal_bowel_movements": 1,
+                "unexplained_weight_loss": 1, "ESR_mm_h": 1}
+    def model_direction(f):
+        return "unused (zero weight)" if mean_abs[f] == 0 else "raises" if mean_signed_corr[f] > 0 else "lowers"
+    sign_rows = [{"feature": f, "expected": "raises" if s > 0 else "lowers", "model": model_direction(f),
+                  "match": "n/a" if mean_abs[f] == 0 else "yes" if np.sign(mean_signed_corr[f]) == s else "NO"}
+                 for f, s in expected.items()]
     low_signal = ["childhood_antibiotic_exposure", "breastfeeding_months", "physical_activity_min_week",
                   "red_processed_meat_times_week", "fruit_vegetable_servings_day", "NSAID_use_times_month",
                   "BMI_kg_m2", "stress_level", "PPI_use", "childhood_GI_infection"]
@@ -274,8 +293,10 @@ def main():
 
     joblib.dump({
         "model": final, "model_name": chosen, "threshold": threshold, "tiers": TIERS,
-        "feature_order": FEATURES, "groups": GROUPS,
-        "defaults": {c: (raw[c].mode()[0] if raw[c].dtype == object else float(raw[c].median())) for c in FEATURES},
+        "feature_order": FEATURES, "model_columns": MODEL_COLUMNS, "groups": GROUPS, "optional": OPTIONAL,
+        # Optional inputs default to blank (imputed by the model), never to an invented value.
+        "defaults": {c: (None if c in OPTIONAL else raw[c].mode()[0] if raw[c].dtype == object
+                         else float(raw[c].median())) for c in FEATURES},
         "background": X.sample(200, random_state=SEED),
         "test_metrics": test, "disclaimer": DISCLAIMER,
     }, OUT / "model.joblib")
@@ -293,7 +314,13 @@ def main():
 
 ## Data
 - Source: `Saudi_IBD_Synthetic.xlsx`, sheet `Synthetic_Data` — {len(y)} rows, IBD prevalence {y.mean():.1%}
-- Features: **61** (README Option A minus `oral_contraceptive_use`). Excluded: {", ".join(f"`{c}`" for c in EXCLUDED)}
+- Inputs: **{len(FEATURES)}** ({len(MODEL_COLUMNS)} model columns; abdominal pain location is one-hot encoded):
+  the original 61 (README Option A minus `oral_contraceptive_use`) plus 37 signs, symptoms and blood tests
+  (README §15). Excluded: {", ".join(f"`{c}`" for c in EXCLUDED)}
+- Not used from the README §15 block: `fecal_occult_blood_test_positive` and the 5 current extra-intestinal symptoms
+- Missing values: blank optional inputs are imputed with the training-fold median inside every pipeline. A blank
+  pain location, symptom frequency or symptom duration means none (no pain or no ongoing symptoms)
+- `anemia_status` is derived from `hemoglobin_g_dL` and sex, so their attributions share one signal
 - Split: stratified 80/20 (train {len(y_tr)}, test {len(y_te)}), seed {SEED}
 - Model comparison: nested 5-fold CV on the training set (hyperparameters tuned inside each fold on PR-AUC)
 
@@ -345,9 +372,14 @@ Top 10 features: {", ".join(f"`{c}`" for c in mean_abs.head(10).index)}
 
 {pd.DataFrame(sign_rows).to_markdown(index=False)}
 
-- Low-signal variables (README §9) — importance rank out of 61 (higher = less important):
+- Low-signal variables (README §9) — importance rank out of {len(FEATURES)} (higher = less important):
   {", ".join(f"`{c}` #{r}" for c, r in sorted(low_rank.items(), key=lambda kv: kv[1]))}
-- Never narrated in explanations (README §8): {", ".join(f"`{c}`" for c in ["appendectomy_history", "childhood_infection_count", "total_triglycerides_mg_dL", "palmitic_acid_ug_mL"])}
+- Never narrated in explanations (README §8 and the symptom-direction review): {", ".join(f"`{c}`" for c in NO_NARRATE)}
+
+### Signs, symptoms and blood tests (new inputs)
+{pd.DataFrame([{"input": c, "importance rank": int(mean_abs.index.get_loc(c)) + 1, "mean abs SHAP": float(mean_abs[c]),
+               "direction": model_direction(c) if c in shap_X.columns else "n/a (one-hot)"}
+              for c in OPTIONAL]).sort_values("importance rank").to_markdown(index=False, floatfmt=".3f")}
 
 ## Files
 - `model.joblib` — final model (refit on all {len(y)} rows), threshold, tiers, feature order, defaults

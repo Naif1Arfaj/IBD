@@ -9,7 +9,7 @@ from django.test import SimpleTestCase, TestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
-from features import FEATURES, NO_NARRATE, load_raw
+from features import FEATURES, NO_NARRATE, json_value, load_raw
 from predict import predict_ibd
 
 from . import alerts as rules
@@ -19,7 +19,7 @@ from .models import Alert, Assessment, MonitoringPlan, Patient, ReferralReview, 
 
 
 def _py(value):
-    return value.item() if hasattr(value, "item") else value
+    return json_value(value)
 
 
 def A(probability=0.1, tier="Low", **inputs):

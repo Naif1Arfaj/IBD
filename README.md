@@ -1,6 +1,6 @@
 <div align="center">
 
-# IBD Care
+# AIGUT
 
 ### Inflammatory Bowel Disease Risk Assessment & Clinical Decision Support
 
@@ -26,7 +26,7 @@ A nurse-focused clinical decision-support prototype combining **interpretable ma
 
 ## Overview
 
-**IBD Care** is a clinical decision-support prototype designed to help nurses review patient information, estimate inflammatory bowel disease risk, understand the major factors influencing the estimate, and access supporting clinical literature within one workflow.
+**AIGUT** is a clinical decision-support prototype designed to help nurses review patient information, estimate inflammatory bowel disease risk, understand the major factors influencing the estimate, and access supporting clinical literature within one workflow.
 
 The system follows a **Human-Centered AI** approach:
 
@@ -38,7 +38,7 @@ The system follows a **Human-Centered AI** approach:
 - Safety and synthetic-data limitations remain transparent.
 
 > **Clinical Safety Notice**  
-> IBD Care is a demonstration prototype built using synthetic patient data. It is **not validated for clinical use**, does **not provide a diagnosis**, and must not be used independently to guide treatment.
+> AIGUT is a demonstration prototype built using synthetic patient data. It is **not validated for clinical use**, does **not provide a diagnosis**, and must not be used independently to guide treatment.
 
 ---
 
@@ -49,7 +49,7 @@ The system follows a **Human-Centered AI** approach:
 | **Primary User** | Nurses and clinical care teams |
 | **Clinical Focus** | Early IBD risk assessment |
 | **Dataset** | 2,500 synthetic patient records |
-| **Model Inputs** | 61 structured features |
+| **Model Inputs** | 98 structured features (61 original + 37 signs, symptoms and blood tests) |
 | **Selected Model** | Sparse Logistic Regression (L1) |
 | **Explainability** | SHAP-based patient-level explanation |
 | **Evidence System** | Hybrid RAG |
@@ -102,7 +102,7 @@ flowchart LR
     B --> D[Assessment History]
     B --> E[Evidence Library]
 
-    C --> F[61-Input IBD Assessment]
+    C --> F[98-Input IBD Assessment]
 
     F --> G[Feature Validation and Encoding]
     G --> H[Sparse Logistic Regression L1]
@@ -173,8 +173,8 @@ The current prototype uses:
 |---|---:|
 | Patient records | **2,500** |
 | Synthetic IBD prevalence | **24.7%** |
-| Model inputs | **61** |
-| Feature groups | **10** |
+| Model inputs | **98** |
+| Feature groups | **11** |
 | Training split | **80%** |
 | Held-out test split | **20%** |
 | Held-out records | **500** |
@@ -185,13 +185,14 @@ The current prototype uses:
 | Group | Examples |
 |---|---|
 | Demographics | Age, sex, BMI |
+| Signs and Symptoms | Diarrhoea, blood in stool, night-time bowel movements, abdominal pain, fatigue (31 inputs) |
 | Family History | IBD family history |
 | Diet | Fiber, fast food, ultra-processed food |
 | Lifestyle | Stress, sleep, activity, smoking |
 | Medication | Antibiotics, PPI, NSAIDs |
 | Early Life | Birth mode, breastfeeding |
 | Microbiome | Shannon diversity, Faecalibacterium, Proteobacteria |
-| Inflammatory Biomarkers | Fecal calprotectin, CRP, vitamin D |
+| Inflammatory Biomarkers | Fecal calprotectin, CRP, vitamin D, anaemia, haemoglobin, WBC, platelets, MCV, ESR |
 | Metabolic Biomarkers | Butyrate and tryptophan-related markers |
 | Red Flags | Clinical and surgical risk flags |
 
@@ -238,7 +239,7 @@ Primary selection metric:
 **Sparse Logistic Regression with L1 regularization**
 
 ```text
-C = 0.3
+C = 0.1
 ```
 
 The model was selected because it provides a strong balance between:
@@ -255,7 +256,7 @@ The model was selected because it provides a strong balance between:
 Classification threshold:
 
 ```text
-0.454
+0.462
 ```
 
 Risk categories:
@@ -276,15 +277,20 @@ The interface presents this as an **estimated IBD risk**, not a diagnosis.
 
 | Metric | Result |
 |---|---:|
-| ROC-AUC | **0.972** |
-| PR-AUC | **0.925** |
-| Accuracy | **0.902** |
-| Precision | **0.800** |
-| Recall / Sensitivity | **0.806** |
-| Specificity | **0.934** |
-| F1 Score | **0.803** |
-| NPV | **0.936** |
-| Brier Score | **0.059** |
+| ROC-AUC | **0.977** |
+| PR-AUC | **0.937** |
+| Accuracy | **0.926** |
+| Precision | **0.843** |
+| Recall / Sensitivity | **0.863** |
+| Specificity | **0.947** |
+| F1 Score | **0.853** |
+| NPV | **0.954** |
+| Brier Score | **0.054** |
+
+Retrained 2026-11-09 with 37 signs, symptoms and blood tests added from the updated synthetic dataset
+(README §15 of the data file). The previous 61-input model scored ROC-AUC 0.972, accuracy 0.902,
+precision 0.800 and recall 0.806. Blank symptoms or blood tests are filled with typical (median) values inside
+the model, and the result page lists them. Full details: [model report](artifacts/model_report.md).
 
 ---
 
@@ -292,7 +298,7 @@ The interface presents this as an **estimated IBD risk**, not a diagnosis.
 
 [![SHAP](https://img.shields.io/badge/Patient--Level%20Explainability-SHAP-796382?style=for-the-badge)](https://shap.readthedocs.io/)
 
-IBD Care uses SHAP-based explanations to show which recorded factors influenced each assessment.
+AIGUT uses SHAP-based explanations to show which recorded factors influenced each assessment.
 
 The nurse-facing interface does not expose raw SHAP values.
 
@@ -461,14 +467,15 @@ The dedicated patient page includes:
 
 ## Assessment
 
-The 61 inputs are divided into six nurse-facing sections:
+The 98 inputs are divided into seven nurse-facing sections:
 
 1. Patient profile
-2. Clinical history
-3. Lifestyle and diet
-4. Biomarkers
-5. Microbiome
-6. Red flags and surgical history
+2. Signs and symptoms (all optional)
+3. Clinical history
+4. Lifestyle and diet
+5. Biomarkers, including the new blood tests (optional)
+6. Microbiome
+7. Red flags and surgical history
 
 ---
 
@@ -524,7 +531,7 @@ Centralizes:
 
 Rebuild the ranges with `python scripts/build_microbiome_reference.py`. It downloads the IBDMDB files into the git-ignored `data/ibdmdb/` and writes `artifacts/microbiome_reference.json` and [the real-data report](artifacts/microbiome_realdata_report.md).
 
-**Why rules and not ML:** in a first-pass check on real IBDMDB data, a remission-visit stool sample showed no predictive signal for active disease at the next visit (AUC 0.48). The cohort has no one moving from pre-IBD to IBD, and its non-IBD group has no recorded alternative diagnoses. The 61-input risk model is unchanged.
+**Why rules and not ML:** in a first-pass check on real IBDMDB data, a remission-visit stool sample showed no predictive signal for active disease at the next visit (AUC 0.48). The cohort has no one moving from pre-IBD to IBD, and its non-IBD group has no recorded alternative diagnoses. Alerts and referrals therefore use transparent rules; the risk model itself only estimates IBD risk.
 
 The full rule table is on the About page. Changing a rule must bump its `RULES_VERSION` in `webapp/clinic/alerts.py` or `webapp/clinic/referrals.py`. Run `python manage.py seed_demo_scenarios` to add three demonstration patients.
 
@@ -532,7 +539,7 @@ The full rule table is on the About page. Changing a rule must bump its `RULES_V
 
 # Human-Centered AI
 
-IBD Care follows Human-Centered AI principles.
+AIGUT follows Human-Centered AI principles.
 
 | Principle | Implementation |
 |---|---|
@@ -731,7 +738,7 @@ python manage.py test clinic
 
 <div align="center">
 
-[![Launch IBD Care](https://img.shields.io/badge/LAUNCH%20IBD%20CARE-Render-72AEB8?style=for-the-badge&logo=render&logoColor=white)](https://ibd-care-naif.onrender.com)
+[![Launch AIGUT](https://img.shields.io/badge/LAUNCH%20AIGUT-Render-72AEB8?style=for-the-badge&logo=render&logoColor=white)](https://ibd-care-naif.onrender.com)
 
 ### https://ibd-care-naif.onrender.com
 
@@ -805,7 +812,7 @@ Password: nurse-demo26
 
 <div align="center">
 
-# IBD Care
+# AIGUT
 
 **Information · Understanding · Care**
 

@@ -4,7 +4,7 @@ from django import forms
 
 from django.utils import timezone
 
-from features import BINARY_01_COLS, FEATURES, GROUPS, encode
+from features import BINARY_01_COLS, BLANK_MEANS_NONE, FEATURES, GROUPS, OPTIONAL, OPTIONAL_BINARY_COLS, encode
 from predict import _load as load_model
 from rag.queries import label, unit
 
@@ -13,6 +13,7 @@ from .services import choices_for, dataset_stats
 
 ENTRY_SECTIONS = [
     ("Patient profile", ["Demographic data"]),
+    ("Signs and symptoms", ["Signs and symptoms"]),
     ("Clinical history", ["Family history", "Medication and antibiotics", "Birth mode and early life"]),
     ("Lifestyle & diet", ["Lifestyle", "Diet"]),
     ("Biomarkers", ["Inflammatory biomarkers", "Metabolism related biomarkers"]),
@@ -22,7 +23,7 @@ ENTRY_SECTIONS = [
 
 
 def entry_sections(form):
-    """The six nurse-facing form sections, shared by the add and edit patient pages."""
+    """The seven nurse-facing form sections, shared by the add and edit patient pages."""
     grouped = dict(form.grouped())
     return [{"label": title, "fields": [f for g in names for f in grouped[g]],
              "has_errors": any(f.errors for g in names for f in grouped[g])}
@@ -43,6 +44,10 @@ class PatientForm(forms.Form):
             for f in cols:
                 text = label(f) + (f" ({unit(f)})" if unit(f) and not choices_for(f) else "")
                 opts = choices_for(f)
+                if f in OPTIONAL:
+                    self.fields[f] = self._optional_field(f, text, opts, stats.get(f))
+                    names.append(f)
+                    continue
                 if opts:
                     init = defaults[f]
                     if f in BINARY_01_COLS:
@@ -59,6 +64,20 @@ class PatientForm(forms.Form):
                 names.append(f)
             self.groups.append((group, names))
 
+    @staticmethod
+    def _optional_field(f, text, opts, s):
+        """Signs, symptoms and blood tests: optional, and blank unless recorded (the model imputes blanks)."""
+        if opts:
+            empty = "None / not recorded" if f in BLANK_MEANS_NONE else "Not recorded"
+            return forms.ChoiceField(label=text, required=False, initial="",
+                                     choices=[("", empty)] + [(o, o) for o in opts if o != "None"])
+        if f in BLANK_MEANS_NONE:
+            text += " — blank if no ongoing symptoms"
+        kind = forms.IntegerField if s["integer"] else forms.FloatField
+        extra = {} if s["integer"] else {"widget": forms.NumberInput(attrs={"step": "any"})}
+        return kind(label=text, required=False, initial="", min_value=s["min"], max_value=s["max"], **extra,
+                    help_text=f"optional · dataset range {s['min']:g}–{s['max']:g}")
+
     def grouped(self):
         return [(g, [self[f] for f in names]) for g, names in self.groups]
 
@@ -67,7 +86,11 @@ class PatientForm(forms.Form):
         for _, names in self.groups:
             for f in names:
                 v = self.cleaned_data[f]
-                data[f] = (1 if v == "Yes" else 0) if f in BINARY_01_COLS else v
+                if f in OPTIONAL and v in ("", None):
+                    v = None
+                elif f in BINARY_01_COLS or f in OPTIONAL_BINARY_COLS:
+                    v = 1 if v == "Yes" else 0
+                data[f] = v
         return data
 
     def clean(self):
@@ -90,7 +113,9 @@ class PatientEditForm(PatientForm):
         for feature in FEATURES:
             if feature in data:
                 value = data[feature]
-                if feature in BINARY_01_COLS:
+                if value is None:
+                    value = ""
+                elif feature in BINARY_01_COLS or feature in OPTIONAL_BINARY_COLS:
                     value = "Yes" if str(value) in ("1", "1.0", "Yes") else "No"
                 self.fields[feature].initial = value
 

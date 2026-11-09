@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Clinical workspace{% endblock %} | IBD Care</title>
+  <title>{% block title %}Clinical workspace{% endblock %} | AIGUT</title>
   <link rel="stylesheet" href="{% static 'clinic/app.css' %}">
   <script src="{% static 'clinic/app.js' %}" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="app-header no-print">
-  <a class="brand" href="{% url 'dashboard' %}">{% include "clinic/partials/brand_mark.html" %}<span>IBD Care<small>Inflammatory bowel disease risk assessment</small></span></a>
+  <a class="brand" href="{% url 'dashboard' %}">{% include "clinic/partials/brand_mark.html" %}<span>AIGUT<small>Inflammatory bowel disease risk assessment</small></span></a>
   <div class="header-tools">
     {% block environment %}<details class="environment"><summary><span class="status-dot"></span><span class="environment-label">Demo environment</span><span class="environment-short">Demo</span></summary>
 <div class="environment-content"><b>Demonstration only</b>

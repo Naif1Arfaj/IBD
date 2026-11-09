@@ -5,15 +5,11 @@ import pandas as pd
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from features import FEATURES, encode, load_raw
+from features import FEATURES, encode, json_value, load_raw
 from predict import _load as load_model
 
 from clinic import care
 from clinic.models import Assessment, MonitoringPlan, Patient, TreatmentEvent
-
-
-def _py(value):
-    return value.item() if hasattr(value, "item") else value
 
 
 def _backdate(assessment, weeks):
@@ -36,7 +32,7 @@ class Command(BaseCommand):
             matches = raw[mask].sort_values("patient_id")
             if matches.empty:
                 raise ValueError("No synthetic row matches this demo scenario.")
-            return {f: _py(matches.iloc[0][f]) for f in FEATURES}
+            return {f: json_value(matches.iloc[0][f]) for f in FEATURES}
 
         def patient(code, data):
             # The values are altered from the dataset row, so no dataset label applies.
